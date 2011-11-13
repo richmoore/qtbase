@@ -164,6 +164,7 @@ private:
     friend class QSslSocketBackendPrivate;
 
     friend Q_NETWORK_EXPORT uint qHash(const QSslCertificate &key, uint seed) Q_DECL_NOTHROW;
+    friend class QSslOcspRequest;
 };
 Q_DECLARE_SHARED(QSslCertificate)
 

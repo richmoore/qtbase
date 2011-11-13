@@ -499,6 +499,29 @@ PKCS12 *q_d2i_PKCS12_bio(BIO *bio, PKCS12 **pkcs12);
 void q_PKCS12_free(PKCS12 *pkcs12);
 
 
+OCSP_REQUEST *q_OCSP_REQUEST_new();
+void q_OCSP_REQUEST_free(OCSP_REQUEST *request);
+OCSP_CERTID *q_OCSP_cert_to_id(const EVP_MD *dgst, X509 *subject, X509 *issuer);
+OCSP_ONEREQ *q_OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid);
+
+int q_ASN1_i2d_bio(i2d_of_void *i2d,BIO *out, unsigned char *x);
+int q_i2d_OCSP_REQUEST(OCSP_REQUEST *a, unsigned char **out);
+#define q_i2d_OCSP_REQUEST_bio(bp,o) q_ASN1_i2d_bio((i2d_of_void *)q_i2d_OCSP_REQUEST, bp, (unsigned char *)o)
+
+void *q_ASN1_d2i_bio(void *xnew, void *d2i, BIO *in, void **x);
+OCSP_RESPONSE *q_OCSP_RESPONSE_new();
+OCSP_RESPONSE *q_d2i_OCSP_RESPONSE(OCSP_RESPONSE **resp, const unsigned char **in, long len);// Has args
+#define q_d2i_OCSP_RESPONSE_bio(bp,p) (OCSP_RESPONSE *)q_ASN1_d2i_bio((void *)q_OCSP_RESPONSE_new, (void *)q_d2i_OCSP_RESPONSE, bp, p)
+int q_OCSP_response_status(OCSP_RESPONSE *resp);
+OCSP_BASICRESP *q_OCSP_response_get1_basic(OCSP_RESPONSE *resp);
+void q_OCSP_RESPONSE_free(OCSP_RESPONSE *response);
+void q_OCSP_BASICRESP_free(OCSP_BASICRESP *basic);
+int q_OCSP_resp_find_status(OCSP_BASICRESP *basic, OCSP_CERTID *id, int *status, int *reason, ASN1_GENERALIZEDTIME **revtime, ASN1_GENERALIZEDTIME **thisupd, ASN1_GENERALIZEDTIME **nextupd);
+int q_OCSP_check_validity(ASN1_GENERALIZEDTIME *thisUpdate, ASN1_GENERALIZEDTIME *nextUpdate, int skew, int maxage);
+int q_OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len);
+int q_OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *basicresp);
+int q_OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs, X509_STORE *store, unsigned long flags);
+
 #define q_BIO_get_mem_data(b, pp) (int)q_BIO_ctrl(b,BIO_CTRL_INFO,0,(char *)pp)
 #define q_BIO_pending(b) (int)q_BIO_ctrl(b,BIO_CTRL_PENDING,0,NULL)
 #ifdef SSLEAY_MACROS

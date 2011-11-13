@@ -96,6 +96,7 @@
 #include <openssl/rsa.h>
 #include <openssl/crypto.h>
 #include <openssl/tls1.h>
+#include <openssl/ocsp.h>
 
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L
 typedef _STACK STACK;

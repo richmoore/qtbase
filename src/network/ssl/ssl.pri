@@ -18,7 +18,8 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
                ssl/qsslpresharedkeyauthenticator.h \
                ssl/qsslpresharedkeyauthenticator_p.h \
                ssl/qsslcertificateextension.h \
-               ssl/qsslcertificateextension_p.h
+               ssl/qsslcertificateextension_p.h \
+               ssl/qsslocspverifier.h
     SOURCES += ssl/qasn1element.cpp \
                ssl/qssl.cpp \
                ssl/qsslcertificate.cpp \
@@ -30,6 +31,7 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
                ssl/qsslsocket.cpp \
                ssl/qsslpresharedkeyauthenticator.cpp \
                ssl/qsslcertificateextension.cpp
+               ssl/qsslocspverifier.cpp
 
     winrt {
         HEADERS += ssl/qsslsocket_winrt_p.h

@@ -1,0 +1,16 @@
+Dump the ocsp request in filename as text:
+
+openssl ocsp -reqin filename -text
+
+Generate an OCSP request:
+
+openssl ocsp -issuer certificates/ca-cert.pem -cert certificates/cert.pem -reqout openssl.out
+
+Display an ocsp response as text:
+
+openssl ocsp -respin filename -text
+
+Generate and send an OCSP request:
+
+openssl ocsp -issuer certificates/ca-cert.pem -cert certificates/cert.pem -url http://ocsp.entrust.net -resp_text
+
