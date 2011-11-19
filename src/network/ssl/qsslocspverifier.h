@@ -42,6 +42,9 @@
 #ifndef QSSLOCSPVERIFIER_H
 #define QSSLOCSPVERIFIER_H
 
+#include <QtCore/qnamespace.h>
+#include <QtCore/qsharedpointer.h>
+
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
@@ -49,8 +52,6 @@ QT_BEGIN_NAMESPACE
 QT_MODULE(Network)
 
 #ifndef QT_NO_OPENSSL
-
-#include <QtCore/qsharedpointer.h>
 
 class QSslCertificate;
 class QNetworkAccessManager;
@@ -62,6 +63,7 @@ class QSslOcspReplyPrivate;
 class Q_NETWORK_EXPORT QSslOcspRequest
 {
 public:
+    QSslOcspRequest(const QSslCertificate &issuer, const QSslCertificate &toVerify);
     QSslOcspRequest(const QSslOcspRequest &other);
     ~QSslOcspRequest();
 
@@ -72,9 +74,6 @@ public:
     QByteArray toByteArray() const;
 
     QNetworkReply *send(QNetworkAccessManager *manager);
-
-private:
-    QSslOcspRequest(const QSslCertificate &issuer, const QSslCertificate &toVerify);
 
 private:
     QExplicitlySharedDataPointer<QSslOcspRequestPrivate> d;
@@ -116,6 +115,7 @@ public:
         RevokationRemoveFromCRL
     };
 
+    QSslOcspReply(const QSslOcspRequest &request, const QByteArray &reply, const QList<QSslCertificate> &caCertificates);
     QSslOcspReply(const QSslOcspReply &other);
     ~QSslOcspReply();
 
@@ -126,9 +126,6 @@ public:
     ResponseStatus responseStatus() const;
     CertificateStatus certificateStatus() const;
     RevokationReason revokationReason() const;
-
-private:
-    QSslOcspReply(const QSslOcspRequest &request, const QByteArray &reply, const QList<QSslCertificate> &caCertificates);
 
 private:
     QExplicitlySharedDataPointer<QSslOcspReplyPrivate> d;
