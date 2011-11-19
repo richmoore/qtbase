@@ -169,20 +169,18 @@ QByteArray QSslOcspRequest::toByteArray() const
     if (!isValid())
         return result;
 
-    BIO *requestBio = q_BIO_new(q_BIO_s_mem());
-    if (!requestBio)
+    BIO *bio = q_BIO_new(q_BIO_s_mem());
+    if (!bio)
         return result;
 
     // Write to the BIO
-    q_i2d_OCSP_REQUEST_bio(requestBio, d->request);
+    q_i2d_OCSP_REQUEST_bio(bio, d->request);
 
-    QVarLengthArray<char, 4096> data;
-    int count = q_BIO_read(requestBio, data.data(), 4096);
-    if ( count > 0 ) {
-        result = QByteArray( data.data(), count );
-    }
+    char *bio_buffer;
+    long bio_size = q_BIO_get_mem_data(bio, &bio_buffer);
+    result = QByteArray(bio_buffer, bio_size);
 
-    q_BIO_free(requestBio);
+    q_BIO_free(bio);
 
     return result;
 }
