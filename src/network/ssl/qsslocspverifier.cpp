@@ -158,15 +158,15 @@ QSslOcspRequest &QSslOcspRequest::operator=(const QSslOcspRequest &other)
     return *this;
 }
 
-bool QSslOcspRequest::isValid() const
+bool QSslOcspRequest::isNull() const
 {
-    return (d->request != 0);
+    return !d->request;
 }
 
 QByteArray QSslOcspRequest::toByteArray() const
 {
     QByteArray result;
-    if (!isValid())
+    if (isNull())
         return result;
 
     BIO *bio = q_BIO_new(q_BIO_s_mem());
@@ -187,7 +187,7 @@ QByteArray QSslOcspRequest::toByteArray() const
 
 QNetworkReply *QSslOcspRequest::send(QNetworkAccessManager *manager)
 {
-    if (!isValid())
+    if (isNull())
         return 0;
 
     QString ocspUri;
@@ -415,9 +415,9 @@ QSslOcspReply &QSslOcspReply::operator=(const QSslOcspReply &other)
     return *this;
 }
 
-bool QSslOcspReply::isValid() const
+bool QSslOcspReply::isNull() const
 {
-    return (d->response != 0) && (d->responseStatus==ResponseSuccessful);
+    return !d->response;
 }
 
 QSslOcspReply::ResponseStatus QSslOcspReply::responseStatus() const

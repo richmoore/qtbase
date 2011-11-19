@@ -103,8 +103,8 @@ int main(int argc, char **argv)
     qDebug() << "Issuer:" << certChain[0].issuerInfo(QSslCertificate::Organization);
 
     QSslOcspRequest ocspReq(certChain[1], certChain[0]);
-    if (!ocspReq.isValid()) {
-        qDebug() << "OCSP request is not valid";
+    if (ocspReq.isNull()) {
+        qDebug() << "OCSP request is null";
         return 1;
     }
 
@@ -124,8 +124,8 @@ int main(int argc, char **argv)
 
     // Check response
     QSslOcspReply ocspResp(ocspReq, response, QSslSocket::defaultCaCertificates());
-    if (!ocspResp.isValid()) {
-        qDebug() << "OCSP reply is invalid";
+    if (ocspResp.isNull()) {
+        qDebug() << "OCSP reply is null";
         return 1;
     }
 

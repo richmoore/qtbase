@@ -140,7 +140,7 @@ void tst_QSslOcspVerifier::sendRequest()
     out.close();
 
     QSslOcspReply reply = verifier.createReply(request, responseArray);
-    qDebug() << "isValid" << reply.isValid();
+    qDebug() << "isNull" << reply.isNull();
     qDebug() << "responseStatus" << reply.responseStatus();
     qDebug() << "certificateStatus" << reply.certificateStatus();
     qDebug() << "revokationReason" << reply.revokationReason();

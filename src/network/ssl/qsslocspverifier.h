@@ -69,7 +69,7 @@ public:
 
     QSslOcspRequest &operator=(const QSslOcspRequest &other);
 
-    bool isValid() const;
+    bool isNull() const;
 
     QByteArray toByteArray() const;
 
@@ -121,7 +121,7 @@ public:
 
     QSslOcspReply &operator=(const QSslOcspReply &other);
 
-    bool isValid() const;
+    bool isNull() const;
 
     ResponseStatus responseStatus() const;
     CertificateStatus certificateStatus() const;
