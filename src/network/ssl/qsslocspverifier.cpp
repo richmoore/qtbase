@@ -58,7 +58,7 @@
 #include "qdatetime.h"
 #include "qnetworkaccessmanager.h"
 #include "qnetworkrequest.h"
-#include "qvarlengtharray.h"
+#include "qsslcertificateextension.h"
 
 #include <openssl/ocsp.h>
 
@@ -190,13 +190,22 @@ QNetworkReply *QSslOcspRequest::send(QNetworkAccessManager *manager)
     if (!isValid())
         return 0;
 
-    //### Port to new extension support
-    //QStringList ocspUris = d->certToVerify.ocspUris();
-    //if (ocspUris.isEmpty())
-    //    return 0;
+    QString ocspUri;
+    foreach(const QSslCertificateExtension &ext, d->certToVerify.extensions()) {
+        // Find AIA extension
+        if (ext.oid() == QLatin1String("1.3.6.1.5.5.7.1.1")) {
+            QVariantMap aia = ext.value().toMap();
+            ocspUri = aia[QLatin1String("OCSP")].toString();
+            break;
+        }
+    }
 
-    //QNetworkRequest req(ocspUris[0]);
-    QNetworkRequest req( QString("http://ocsp.entrust.net/") );//used to force an unknown response
+    if (ocspUri.isEmpty())
+        return 0;
+
+    qDebug() << "OCSP server" << ocspUri;
+    QNetworkRequest req(ocspUri);
+    //QNetworkRequest req( QString("http://ocsp.entrust.net/") );//used to force an unknown response
     req.setHeader(QNetworkRequest::ContentTypeHeader, QLatin1String("application/ocsp-request"));
     QNetworkReply *reply = manager->post(req, toByteArray());
 
@@ -394,7 +403,7 @@ QSslOcspReply::RevokationReason QSslOcspReplyPrivate::opensslRevokationReasonToR
         result = QSslOcspReply::RevokationRemoveFromCRL;
         break;
     default:
-        qWarning() << "Unkown revokation reason specified" << reason;
+        qWarning() << "Unknown revokation reason specified" << reason;
     }
     
     return result;
