@@ -95,8 +95,7 @@ public:
           basicresp(0),
           certStatus(QSslOcspReply::CertificateStatusUnknown),
           responseStatus(QSslOcspReply::ResponseInvalid),
-          revokationReason(QSslOcspReply::RevokationNone),
-          hasNonce(false)
+          revokationReason(QSslOcspReply::RevokationNone)
     {
 
     }
@@ -120,7 +119,6 @@ public:
     QSslOcspReply::CertificateStatus certStatus;
     QSslOcspReply::ResponseStatus responseStatus;
     QSslOcspReply::RevokationReason revokationReason;
-    bool hasNonce;
     QAtomicInt ref;
 };
 
@@ -143,9 +141,6 @@ QSslOcspRequest::QSslOcspRequest( const QSslCertificate &issuer, const QSslCerti
         d->request = 0;
         return;
     }
-
-    // Add a nonce to prevent replay attacks
-    q_OCSP_request_add1_nonce(d->request, 0, -1);
 }
 
 QSslOcspRequest::~QSslOcspRequest()
@@ -261,30 +256,6 @@ void QSslOcspReplyPrivate::decodeResponse(const QSslOcspRequest &request, const 
         // We have a valid response that doesn't contain a basic response. Something is
         // very screwed up.
         responseStatus = QSslOcspReply::ResponseUnknownError;
-        return;
-    }
-
-    // Check the nonces match
-    int nonceResult = q_OCSP_check_nonce(request.d->request, basicresp);
-    switch(nonceResult) {
-    case 1: // Present and equal
-        qDebug() << "ocsp nonce is good";
-        hasNonce = true;
-        break;
-    case 2: // Missing in both (never happens to us)
-        break;
-    case 3: // Present in response only (never happens to us)
-        break;
-    case -1: // Present in request missing response (too common for us to error on) eg. thawte
-        qDebug() << "No nonce from server";
-        break;
-    case 0: // Nonce mismatch. possible replay attack
-        qDebug() << "Nonce mismatch";
-        responseStatus = QSslOcspReply::ResponseInvalid;
-        return;
-    default:
-        qWarning() << "Unknown result from nonce check" << nonceResult;
-        responseStatus = QSslOcspReply::ResponseInvalid;
         return;
     }
 
@@ -440,11 +411,6 @@ QSslOcspReply &QSslOcspReply::operator=(const QSslOcspReply &other)
 bool QSslOcspReply::isValid() const
 {
     return (d->response != 0) && (d->responseStatus==ResponseSuccessful);
-}
-
-bool QSslOcspReply::hasNonce() const
-{
-    return d->hasNonce;
 }
 
 QSslOcspReply::ResponseStatus QSslOcspReply::responseStatus() const

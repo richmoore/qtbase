@@ -122,7 +122,6 @@ public:
     QSslOcspReply &operator=(const QSslOcspReply &other);
 
     bool isValid() const;
-    bool hasNonce() const;
 
     ResponseStatus responseStatus() const;
     CertificateStatus certificateStatus() const;
