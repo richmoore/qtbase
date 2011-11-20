@@ -129,9 +129,30 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    qDebug() << "Response status" << ocspResp.responseStatus();
-    qDebug() << "Certificate status" << ocspResp.certificateStatus();
-    qDebug() << "Reason" << ocspResp.revokationReason();
+    switch (ocspResp.responseStatus()) {
+    case QSslOcspReply::ResponseInvalid:
+        qDebug() << "Response Status: Invalid";
+        break;
+    case QSslOcspReply::ResponseSuccessful:
+        qDebug() << "Response Status: Invalid";
+        break;
+    default:
+        qDebug() << "Response Status: " << ocspResp.responseStatus();
+        break;
+    }
+
+    switch(ocspResp.certificateStatus()) {
+    case QSslOcspReply::CertificateStatusGood:
+        qDebug() << "Certificate Status: Good";
+        break;
+    case QSslOcspReply::CertificateStatusRevoked:
+        qDebug() << "Certificate Status: Revoked";
+        qDebug() << "Revokation Reason:" << ocspResp.revokationReason();
+        break;
+    case QSslOcspReply::CertificateStatusUnknown:
+        qDebug() << "Certificate Status: Unknown";
+        break;
+    }
 
     return 0;
 }

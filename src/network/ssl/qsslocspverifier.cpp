@@ -129,6 +129,8 @@ public:
 QSslOcspRequest::QSslOcspRequest( const QSslCertificate &issuer, const QSslCertificate &toVerify )
     : d(new QSslOcspRequestPrivate)
 {
+    QSslSocketPrivate::ensureInitialized();
+
     d->certToVerify = toVerify;
 
     d->request = q_OCSP_REQUEST_new();
@@ -219,19 +221,13 @@ QNetworkReply *QSslOcspRequest::send(QNetworkAccessManager *manager)
 QSslOcspReply::QSslOcspReply(const QSslOcspRequest &request, const QByteArray &replyArray, const QList<QSslCertificate> &caCertificates)
     : d(new QSslOcspReplyPrivate)
 {
-    d->response = 0;
-#if 1
     BIO *replyBio = q_BIO_new(q_BIO_s_mem());
     if (!replyBio)
         return;
 
     // Copy the data into the bio
     q_BIO_write(replyBio, replyArray.constData(), replyArray.size());
-#else
-    BIO *replyBio = q_BIO_new_file("gmail-response.out", "rb");
-    if (!replyBio)
-        return;
-#endif
+
     d->response = q_d2i_OCSP_RESPONSE_bio(replyBio, 0);
     q_BIO_free(replyBio);
 
@@ -241,6 +237,7 @@ QSslOcspReply::QSslOcspReply(const QSslOcspRequest &request, const QByteArray &r
 QSslOcspReply::QSslOcspReply(const QSslOcspReply &other)
     : d(other.d)
 {
+    QSslSocketPrivate::ensureInitialized();
 }
 
 QSslOcspReply::~QSslOcspReply()
@@ -442,7 +439,6 @@ QSslOcspReply::RevokationReason QSslOcspReply::revokationReason() const
 QSslOcspVerifier::QSslOcspVerifier(QObject *parent)
     : QObject(parent)
 {
-    QSslSocketPrivate::ensureInitialized();
 }
 
 QSslOcspVerifier::~QSslOcspVerifier()
