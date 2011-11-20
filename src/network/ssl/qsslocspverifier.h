@@ -93,6 +93,7 @@ public:
     };
 
     enum ResponseStatus {
+        ResponseNotVerified=-3,
         ResponseInvalid=-2,
         ResponseUnknownError=-1,
         ResponseSuccessful=0,

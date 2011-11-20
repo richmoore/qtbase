@@ -123,7 +123,9 @@ int main(int argc, char **argv)
     QByteArray response = networkReply->readAll();
 
     // Check response
-    QSslOcspReply ocspResp(ocspReq, response, QSslSocket::defaultCaCertificates());
+    QList<QSslCertificate> caCerts = QSslSocket::defaultCaCertificates();
+    caCerts.append(certChain);
+    QSslOcspReply ocspResp(ocspReq, response, caCerts);
     if (ocspResp.isNull()) {
         qDebug() << "OCSP reply is null";
         return 1;
@@ -134,7 +136,7 @@ int main(int argc, char **argv)
         qDebug() << "Response Status: Invalid";
         break;
     case QSslOcspReply::ResponseSuccessful:
-        qDebug() << "Response Status: Invalid";
+        qDebug() << "Response Status: Success";
         break;
     default:
         qDebug() << "Response Status: " << ocspResp.responseStatus();
