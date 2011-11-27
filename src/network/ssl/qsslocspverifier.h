@@ -43,7 +43,7 @@
 #define QSSLOCSPVERIFIER_H
 
 #include <QtCore/qnamespace.h>
-#include <QtCore/qsharedpointer.h>
+#include <QtCore/qshareddata.h>
 
 QT_BEGIN_HEADER
 
@@ -76,7 +76,7 @@ public:
     QNetworkReply *send(QNetworkAccessManager *manager);
 
 private:
-    QExplicitlySharedDataPointer<QSslOcspRequestPrivate> d;
+    QSharedDataPointer<QSslOcspRequestPrivate> d;
 
     friend class QSslOcspRequestPrivate;
     friend class QSslOcspReplyPrivate;   
@@ -129,7 +129,7 @@ public:
     RevokationReason revokationReason() const;
 
 private:
-    QExplicitlySharedDataPointer<QSslOcspReplyPrivate> d;
+    QSharedDataPointer<QSslOcspReplyPrivate> d;
 
     friend class QSslOcspReplyPrivate;
     friend class QSslOcspVerifier;
