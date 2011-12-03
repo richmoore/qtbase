@@ -80,7 +80,6 @@ private:
 
     friend class QSslOcspRequestPrivate;
     friend class QSslOcspReplyPrivate;   
-    friend class QSslOcspVerifier;
 };
 
 class Q_NETWORK_EXPORT QSslOcspReply
@@ -133,18 +132,6 @@ private:
 
     friend class QSslOcspReplyPrivate;
     friend class QSslOcspVerifier;
-};
-
-class Q_NETWORK_EXPORT QSslOcspVerifier : public QObject
-{
-    Q_OBJECT
-public:
-    QSslOcspVerifier(QObject *parent = 0);
-    ~QSslOcspVerifier();
-
-    QSslOcspRequest createRequest(const QSslCertificate &issuer, const QSslCertificate &toVerify);
-    QSslOcspReply createReply(const QSslOcspRequest &request, const QByteArray &reply);
-    QSslOcspReply createReply(const QSslOcspRequest &request, const QByteArray &reply, const QList<QSslCertificate> &caCertificates);
 };
 
 #endif // QT_NO_OPENSSL

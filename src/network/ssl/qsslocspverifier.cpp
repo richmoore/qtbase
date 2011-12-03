@@ -439,37 +439,4 @@ QSslOcspReply::RevokationReason QSslOcspReply::revokationReason() const
     return d->revokationReason;
 }
 
-//
-// Verifier
-//
-
-QSslOcspVerifier::QSslOcspVerifier(QObject *parent)
-    : QObject(parent)
-{
-}
-
-QSslOcspVerifier::~QSslOcspVerifier()
-{
-}
-
-QSslOcspRequest QSslOcspVerifier::createRequest(const QSslCertificate &issuer, const QSslCertificate &toVerify)
-{
-    QSslOcspRequest req(issuer, toVerify);
-    return req;
-}
-
-QSslOcspReply QSslOcspVerifier::createReply(const QSslOcspRequest &request, const QByteArray &replyArray)
-{
-    QSslOcspReply reply(request, replyArray, QSslSocket::defaultCaCertificates());
-    return reply;
-}
-
-QSslOcspReply QSslOcspVerifier::createReply(const QSslOcspRequest &request,
-                                            const QByteArray &replyArray,
-                                            const QList<QSslCertificate> &caCertificates)
-{
-    QSslOcspReply reply(request, replyArray, caCertificates);
-    return reply;
-}
-
 QT_END_NAMESPACE

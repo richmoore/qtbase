@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) Richard J. Moore, rich@kde.org.
+** Copyright (C) 2011 Richard J. Moore, rich@kde.org.
 ** All rights reserved.
 ** Contact: Nokia Corporation (qt-info@nokia.com)
 **
