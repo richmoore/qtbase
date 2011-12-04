@@ -108,13 +108,14 @@ public:
             q_OCSP_BASICRESP_free(basicresp);
     }
 
-    void decodeResponse(const QSslOcspRequest &request, const QList<QSslCertificate> &caCertificates);
+    void decodeResponse(const QByteArray &replyArray);
 
     static QSslOcspReply::ResponseStatus opensslResponseStatusToResponseStatus(int status);
     static QSslOcspReply::CertificateStatus opensslCertificateStatusToCertificateStatus(int status);
     static QSslOcspReply::RevokationReason opensslRevokationReasonToRevokationReason(int reason);
 
 public:
+    QSslOcspRequest request;
     OCSP_RESPONSE *response;
     OCSP_BASICRESP *basicresp;
     QSslOcspReply::CertificateStatus certStatus;
@@ -126,6 +127,12 @@ public:
 //
 // Request
 //
+
+QSslOcspRequest::QSslOcspRequest()
+    : d(0)
+{
+
+}
 
 QSslOcspRequest::QSslOcspRequest( const QSslCertificate &issuer, const QSslCertificate &toVerify )
     : d(new QSslOcspRequestPrivate)
@@ -219,26 +226,20 @@ QNetworkReply *QSslOcspRequest::send(QNetworkAccessManager *manager)
 // Reply
 //
 
-QSslOcspReply::QSslOcspReply(const QSslOcspRequest &request, const QByteArray &replyArray,
-                             const QList<QSslCertificate> &caCertificates)
+QSslOcspReply::QSslOcspReply(const QSslOcspRequest &request, const QByteArray &replyArray)
     : d(new QSslOcspReplyPrivate)
 {
-    BIO *replyBio = q_BIO_new(q_BIO_s_mem());
-    if (!replyBio)
-        return;
+    QSslSocketPrivate::ensureInitialized();
 
-    QFile f("resp.out");
+#if 1 // Debug
+    QFile f(QStringLiteral("resp.out"));
     f.open(QFile::WriteOnly);
     f.write(replyArray);
     f.close();
+#endif
 
-    // Copy the data into the bio
-    q_BIO_write(replyBio, replyArray.constData(), replyArray.size());
-
-    d->response = q_d2i_OCSP_RESPONSE_bio(replyBio, 0);
-    q_BIO_free(replyBio);
-
-    d->decodeResponse(request, caCertificates);
+    d->request = request;
+    d->decodeResponse(replyArray);
 }
 
 QSslOcspReply::QSslOcspReply(const QSslOcspReply &other)
@@ -251,9 +252,16 @@ QSslOcspReply::~QSslOcspReply()
 {
 }
 
-void QSslOcspReplyPrivate::decodeResponse(const QSslOcspRequest &request, const QList<QSslCertificate> &caCertificates)
+void QSslOcspReplyPrivate::decodeResponse(const QByteArray &replyArray)
 {
-    Q_ASSERT(response);
+    BIO *replyBio = q_BIO_new(q_BIO_s_mem());
+    if (!replyBio)
+        return;
+
+    // Copy the data into the bio
+    q_BIO_write(replyBio, replyArray.constData(), replyArray.size());
+    response = q_d2i_OCSP_RESPONSE_bio(replyBio, 0);
+    q_BIO_free(replyBio);
 
     // If we got an error response we can stop
     responseStatus = opensslResponseStatusToResponseStatus(q_OCSP_response_status(response));
@@ -271,34 +279,6 @@ void QSslOcspReplyPrivate::decodeResponse(const QSslOcspRequest &request, const 
     }
 
     //
-    // Check the request is correctly certifed
-    //
-#if 0
-    // Create the certificate store
-    X509_STORE *certStore = q_X509_STORE_new();
-    if (!certStore) {
-        qWarning() << "Unable to create certificate store";
-        responseStatus = QSslOcspReply::ResponseUnknownError;
-        return;
-    }
-
-    foreach (const QSslCertificate &caCertificate, caCertificates)
-        q_X509_STORE_add_cert(certStore, (X509 *)caCertificate.handle());
-
-    int verifyResult = q_OCSP_basic_verify(basicresp, 0, certStore, 0);
-
-    // A verify result is a failure if it is 0 or less
-    if (verifyResult <= 0) {
-        qDebug() << "OCSP response verification failed" << verifyResult;
-        responseStatus = QSslOcspReply::ResponseNotVerified;
-        return;
-    }
-    qDebug() << "OCSP response verification good";
-
-    q_X509_STORE_free(certStore);
-#endif
-
-    //
     // Get the status
     //
     int status;
@@ -307,7 +287,8 @@ void QSslOcspReplyPrivate::decodeResponse(const QSslOcspRequest &request, const 
     ASN1_GENERALIZEDTIME *thisUpdate;
     ASN1_GENERALIZEDTIME *nextUpdate;
 
-    if (!q_OCSP_resp_find_status(basicresp, request.d->certId, &status, &reason, &producedAt, &thisUpdate, &nextUpdate)) {
+    if (!q_OCSP_resp_find_status(basicresp, request.d->certId,
+                                 &status, &reason, &producedAt, &thisUpdate, &nextUpdate)) {
         responseStatus = QSslOcspReply::ResponseInvalid;
         return;
     }
@@ -324,6 +305,35 @@ void QSslOcspReplyPrivate::decodeResponse(const QSslOcspRequest &request, const 
         responseStatus = QSslOcspReply::ResponseInvalid;
         return;
     }
+}
+
+bool QSslOcspReply::hasValidSignature(const QList<QSslCertificate> &caCertificates) const
+{
+#if 0
+    // Create the certificate store
+    X509_STORE *certStore = q_X509_STORE_new();
+    if (!certStore) {
+        qWarning() << "Unable to create certificate store";
+        responseStatus = QSslOcspReply::ResponseUnknownError;
+        return false;
+    }
+
+    foreach (const QSslCertificate &caCertificate, caCertificates)
+        q_X509_STORE_add_cert(certStore, (X509 *)caCertificate.handle());
+
+    int verifyResult = q_OCSP_basic_verify(basicresp, 0, certStore, 0);
+
+    // A verify result is a failure if it is 0 or less
+    if (verifyResult <= 0) {
+        qDebug() << "OCSP response verification failed" << verifyResult;
+        responseStatus = QSslOcspReply::ResponseNotVerified;
+        return false;
+    }
+    qDebug() << "OCSP response verification good";
+
+    q_X509_STORE_free(certStore);
+#endif
+    return true;
 }
 
 QSslOcspReply::ResponseStatus QSslOcspReplyPrivate::opensslResponseStatusToResponseStatus(int status)

@@ -123,13 +123,16 @@ int main(int argc, char **argv)
     QByteArray response = networkReply->readAll();
 
     // Check response
-    QList<QSslCertificate> caCerts = QSslSocket::defaultCaCertificates();
-    caCerts.append(certChain);
-    QSslOcspReply ocspResp(ocspReq, response, caCerts);
+    QSslOcspReply ocspResp(ocspReq, response);
     if (ocspResp.isNull()) {
         qDebug() << "OCSP reply is null";
         return 1;
     }
+
+    // Check signature
+    QList<QSslCertificate> caCerts = QSslSocket::defaultCaCertificates();
+    caCerts.append(certChain);
+    //, caCerts
 
     switch (ocspResp.responseStatus()) {
     case QSslOcspReply::ResponseInvalid:

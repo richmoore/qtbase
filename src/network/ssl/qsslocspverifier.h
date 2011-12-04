@@ -63,6 +63,7 @@ class QSslOcspReplyPrivate;
 class Q_NETWORK_EXPORT QSslOcspRequest
 {
 public:
+    QSslOcspRequest();
     QSslOcspRequest(const QSslCertificate &issuer, const QSslCertificate &toVerify);
     QSslOcspRequest(const QSslOcspRequest &other);
     ~QSslOcspRequest();
@@ -115,13 +116,14 @@ public:
         RevokationRemoveFromCRL
     };
 
-    QSslOcspReply(const QSslOcspRequest &request, const QByteArray &reply, const QList<QSslCertificate> &caCertificates);
+    QSslOcspReply(const QSslOcspRequest &request, const QByteArray &reply);
     QSslOcspReply(const QSslOcspReply &other);
     ~QSslOcspReply();
 
     QSslOcspReply &operator=(const QSslOcspReply &other);
 
     bool isNull() const;
+    bool hasValidSignature(const QList<QSslCertificate> &caCertificates) const;
 
     ResponseStatus responseStatus() const;
     CertificateStatus certificateStatus() const;
