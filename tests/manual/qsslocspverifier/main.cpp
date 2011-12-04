@@ -99,6 +99,8 @@ int main(int argc, char **argv)
     qDebug() << "Connected to server";
 
     QList<QSslCertificate> certChain = socket.peerCertificateChain();
+
+    qDebug() << "Chain length" << certChain.length();
     qDebug() << "Subject:" << certChain[0].subjectInfo(QSslCertificate::CommonName);
     qDebug() << "Issuer:" << certChain[0].issuerInfo(QSslCertificate::Organization);
 
@@ -131,8 +133,13 @@ int main(int argc, char **argv)
 
     // Check signature
     QList<QSslCertificate> caCerts = QSslSocket::defaultCaCertificates();
-    caCerts.append(certChain);
-    //, caCerts
+
+    certChain.removeFirst();
+    if (!ocspResp.hasValidSignature(certChain, caCerts)) {
+        qDebug() << "Signature: Invalid";
+    } else {
+        qDebug() << "Signature: Valid";
+    }
 
     switch (ocspResp.responseStatus()) {
     case QSslOcspReply::ResponseInvalid:

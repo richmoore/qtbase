@@ -95,7 +95,7 @@ public:
         : response(0),
           basicresp(0),
           certStatus(QSslOcspReply::CertificateStatusUnknown),
-          responseStatus(QSslOcspReply::ResponseInvalid),
+          responseStatus(QSslOcspReply::ResponseUnknownError),
           revokationReason(QSslOcspReply::RevokationNone)
     {
 
@@ -307,30 +307,56 @@ void QSslOcspReplyPrivate::decodeResponse(const QByteArray &replyArray)
     }
 }
 
-bool QSslOcspReply::hasValidSignature(const QList<QSslCertificate> &caCertificates) const
+bool QSslOcspReply::hasValidSignature(const QList<QSslCertificate> &intermediateCertificates,
+                                      const QList<QSslCertificate> &caCertificates) const
 {
-#if 0
+#if 1
     // Create the certificate store
     X509_STORE *certStore = q_X509_STORE_new();
     if (!certStore) {
         qWarning() << "Unable to create certificate store";
-        responseStatus = QSslOcspReply::ResponseUnknownError;
         return false;
     }
 
     foreach (const QSslCertificate &caCertificate, caCertificates)
         q_X509_STORE_add_cert(certStore, (X509 *)caCertificate.handle());
 
-    int verifyResult = q_OCSP_basic_verify(basicresp, 0, certStore, 0);
+    // Build a stack of the intermediates
+    STACK_OF(X509) *intermediates = 0;
+    intermediates = (STACK_OF(X509) *) q_sk_new_null();
+    if (!intermediates) {
+        q_X509_STORE_free(certStore);
+        return false;
+    }
+
+    foreach (const QSslCertificate &cert, intermediateCertificates) {
+        qDebug() << "Added intermediate" << cert.subjectInfo(QSslCertificate::CommonName);
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+        q_sk_push( (_STACK *)intermediates, reinterpret_cast<X509 *>(cert.handle()));
+#else
+        q_sk_push( (STACK *)intermediates, reinterpret_cast<X509 *>(cert.handle()));
+#endif
+    }
+
+    int verifyResult = q_OCSP_basic_verify(d->basicresp, intermediates, certStore, 0);
 
     // A verify result is a failure if it is 0 or less
     if (verifyResult <= 0) {
+        unsigned long errnum = q_ERR_get_error();
+        const char *error = q_ERR_error_string(errnum, 0);
+
         qDebug() << "OCSP response verification failed" << verifyResult;
-        responseStatus = QSslOcspReply::ResponseNotVerified;
+        qDebug() << "Error was: " << error;
+        // ### TODO: Fix mem leak
         return false;
     }
     qDebug() << "OCSP response verification good";
 
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+    q_sk_free( (_STACK *) intermediates);
+#else
+    q_sk_free( (STACK *) intermediates);
+#endif
     q_X509_STORE_free(certStore);
 #endif
     return true;

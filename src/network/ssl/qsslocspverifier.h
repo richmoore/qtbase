@@ -93,7 +93,6 @@ public:
     };
 
     enum ResponseStatus {
-        ResponseNotVerified=-3,
         ResponseInvalid=-2,
         ResponseUnknownError=-1,
         ResponseSuccessful=0,
@@ -123,7 +122,8 @@ public:
     QSslOcspReply &operator=(const QSslOcspReply &other);
 
     bool isNull() const;
-    bool hasValidSignature(const QList<QSslCertificate> &caCertificates) const;
+    bool hasValidSignature(const QList<QSslCertificate> &intermediateCertificates,
+                           const QList<QSslCertificate> &caCertificates) const;
 
     ResponseStatus responseStatus() const;
     CertificateStatus certificateStatus() const;
