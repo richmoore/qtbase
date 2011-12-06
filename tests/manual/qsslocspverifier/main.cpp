@@ -135,6 +135,15 @@ int main(int argc, char **argv)
     QList<QSslCertificate> caCerts = QSslSocket::defaultCaCertificates();
 
     certChain.removeFirst();
+
+    QSslCertificate verisign = QSslCertificate::fromPath("verisign-ca.pem")[0];
+    qDebug() << "Subject:" << verisign.subjectInfo(QSslCertificate::Organization);
+    certChain.append(verisign);
+
+    QSslCertificate thawte = QSslCertificate::fromPath("thawte-ocsp-server.pem")[0];
+    qDebug() << "Subject:" << thawte.subjectInfo(QSslCertificate::Organization);
+    certChain.append(thawte);
+
     if (!ocspResp.hasValidSignature(certChain, caCerts)) {
         qDebug() << "Signature: Invalid";
     } else {
