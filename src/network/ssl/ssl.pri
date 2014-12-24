@@ -31,6 +31,7 @@ contains(QT_CONFIG, ssl) | contains(QT_CONFIG, openssl) | contains(QT_CONFIG, op
                ssl/qsslsocket.cpp \
                ssl/qsslpresharedkeyauthenticator.cpp \
                ssl/qsslcertificateextension.cpp
+               ssl/qsslcertificateextension.cpp \
                ssl/qsslocspverifier.cpp
 
     winrt {

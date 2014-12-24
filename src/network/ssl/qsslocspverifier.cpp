@@ -324,6 +324,7 @@ bool QSslOcspReply::hasValidSignature(const QList<QSslCertificate> &intermediate
     // Build a stack of the intermediates
     STACK_OF(X509) *intermediates = 0;
     intermediates = (STACK_OF(X509) *) q_sk_new_null();
+
     if (!intermediates) {
         q_X509_STORE_free(certStore);
         return false;
@@ -338,7 +339,7 @@ bool QSslOcspReply::hasValidSignature(const QList<QSslCertificate> &intermediate
 #endif
     }
 
-    int verifyResult = q_OCSP_basic_verify(d->basicresp, intermediates, certStore, 0);
+    int verifyResult = q_OCSP_basic_verify(d->basicresp, intermediates, certStore, OCSP_TRUSTOTHER);
 
     // A verify result is a failure if it is 0 or less
     if (verifyResult <= 0) {
