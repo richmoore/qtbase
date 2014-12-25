@@ -122,8 +122,7 @@ public:
     QSslOcspReply &operator=(const QSslOcspReply &other);
 
     bool isNull() const;
-    bool hasValidSignature(const QList<QSslCertificate> &intermediateCertificates,
-                           const QList<QSslCertificate> &caCertificates) const;
+    bool hasValidSignature(const QSslCertificate &issuer) const;
 
     ResponseStatus responseStatus() const;
     CertificateStatus certificateStatus() const;

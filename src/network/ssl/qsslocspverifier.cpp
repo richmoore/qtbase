@@ -307,10 +307,8 @@ void QSslOcspReplyPrivate::decodeResponse(const QByteArray &replyArray)
     }
 }
 
-bool QSslOcspReply::hasValidSignature(const QList<QSslCertificate> &intermediateCertificates,
-                                      const QList<QSslCertificate> &caCertificates) const
+bool QSslOcspReply::hasValidSignature(const QSslCertificate &issuer) const
 {
-#if 1
     // Create the certificate store
     X509_STORE *certStore = q_X509_STORE_new();
     if (!certStore) {
@@ -318,10 +316,7 @@ bool QSslOcspReply::hasValidSignature(const QList<QSslCertificate> &intermediate
         return false;
     }
 
-    foreach (const QSslCertificate &caCertificate, caCertificates)
-        q_X509_STORE_add_cert(certStore, (X509 *)caCertificate.handle());
-
-    // Build a stack of the intermediates
+    // Build a stack to put the issuer in
     STACK_OF(X509) *intermediates = 0;
     intermediates = (STACK_OF(X509) *) q_sk_new_null();
 
@@ -329,15 +324,13 @@ bool QSslOcspReply::hasValidSignature(const QList<QSslCertificate> &intermediate
         q_X509_STORE_free(certStore);
         return false;
     }
-
-    foreach (const QSslCertificate &cert, intermediateCertificates) {
-        qDebug() << "Added intermediate" << cert.subjectInfo(QSslCertificate::CommonName);
+    
+    qDebug() << "Added issuer" << issuer.subjectInfo(QSslCertificate::CommonName);
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L
-        q_sk_push( (_STACK *)intermediates, reinterpret_cast<X509 *>(cert.handle()));
+    q_sk_push( (_STACK *)intermediates, reinterpret_cast<X509 *>(issuer.handle()));
 #else
-        q_sk_push( (STACK *)intermediates, reinterpret_cast<X509 *>(cert.handle()));
+    q_sk_push( (STACK *)intermediates, reinterpret_cast<X509 *>(issuer.handle()));
 #endif
-    }
 
     int verifyResult = q_OCSP_basic_verify(d->basicresp, intermediates, certStore, OCSP_TRUSTOTHER);
 
@@ -359,7 +352,7 @@ bool QSslOcspReply::hasValidSignature(const QList<QSslCertificate> &intermediate
     q_sk_free( (STACK *) intermediates);
 #endif
     q_X509_STORE_free(certStore);
-#endif
+
     return true;
 }
 

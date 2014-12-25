@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     QList<QSslCertificate> caCerts = QSslSocket::defaultCaCertificates();
     certChain.removeFirst();
 
-    if (!ocspResp.hasValidSignature(certChain, caCerts)) {
+    if (!ocspResp.hasValidSignature(certChain[0])) {
         qDebug() << "Signature: Invalid";
     } else {
         qDebug() << "Signature: Valid";
