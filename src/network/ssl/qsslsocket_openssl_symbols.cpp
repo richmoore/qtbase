@@ -204,7 +204,7 @@ DEFINEFUNC2(OCSP_ONEREQ *, OCSP_request_add0_id, OCSP_REQUEST *req, req, OCSP_CE
 DEFINEFUNC3(int, ASN1_i2d_bio, i2d_of_void *i2d, i2d, BIO *out, out, unsigned char *x, x, return 0, return)
 DEFINEFUNC2(int, i2d_OCSP_REQUEST, OCSP_REQUEST *a, a, unsigned char **out, out, return 0, return)
 
-DEFINEFUNC4(void *, ASN1_d2i_bio, void *a, a, void *b, b, BIO *c, c, void **d, d, return 0, return)
+DEFINEFUNC4(void *, ASN1_d2i_bio, void *(*a)(void), a, d2i_of_void *b, b, BIO *c, c, void **d, d, return 0, return)
 DEFINEFUNC(OCSP_RESPONSE *, OCSP_RESPONSE_new, void, DUMMYARG, return 0, return)
 DEFINEFUNC3(OCSP_RESPONSE *, d2i_OCSP_RESPONSE, OCSP_RESPONSE **resp, resp, const unsigned char **in, in, long len, len, return 0, return)
 DEFINEFUNC(int, OCSP_response_status, OCSP_RESPONSE *resp, resp, return 0, return)

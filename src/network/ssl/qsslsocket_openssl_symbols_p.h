@@ -508,10 +508,10 @@ int q_ASN1_i2d_bio(i2d_of_void *i2d,BIO *out, unsigned char *x);
 int q_i2d_OCSP_REQUEST(OCSP_REQUEST *a, unsigned char **out);
 #define q_i2d_OCSP_REQUEST_bio(bp,o) q_ASN1_i2d_bio((i2d_of_void *)q_i2d_OCSP_REQUEST, bp, (unsigned char *)o)
 
-void *q_ASN1_d2i_bio(void *xnew, void *d2i, BIO *in, void **x);
+void *q_ASN1_d2i_bio(void *(*xnew)(), d2i_of_void *d2i, BIO *in, void **x);
 OCSP_RESPONSE *q_OCSP_RESPONSE_new();
 OCSP_RESPONSE *q_d2i_OCSP_RESPONSE(OCSP_RESPONSE **resp, const unsigned char **in, long len);// Has args
-#define q_d2i_OCSP_RESPONSE_bio(bp,p) (OCSP_RESPONSE *)q_ASN1_d2i_bio((void *)q_OCSP_RESPONSE_new, (void *)q_d2i_OCSP_RESPONSE, bp, p)
+#define q_d2i_OCSP_RESPONSE_bio(bp,p) (OCSP_RESPONSE *)q_ASN1_d2i_bio(reinterpret_cast<void *(*)()>(q_OCSP_RESPONSE_new), (d2i_of_void *)q_d2i_OCSP_RESPONSE, bp, p)
 int q_OCSP_response_status(OCSP_RESPONSE *resp);
 OCSP_BASICRESP *q_OCSP_response_get1_basic(OCSP_RESPONSE *resp);
 void q_OCSP_RESPONSE_free(OCSP_RESPONSE *response);
