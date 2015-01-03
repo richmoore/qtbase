@@ -134,22 +134,10 @@ int main(int argc, char **argv)
     // Check signature
     certChain.removeFirst(); // Remove the leaf
 
-    if (!ocspResp.hasValidSignature1(certChain)) {
-        qDebug() << "Signature1: Invalid";
+    if (!ocspResp.hasValidSignature(certChain)) {
+        qDebug() << "Signature: Invalid";
     } else {
-        qDebug() << "Signature1: Valid";
-    }
-
-    if (!ocspResp.hasValidSignature2(certChain)) {
-        qDebug() << "Signature2: Invalid";
-    } else {
-        qDebug() << "Signature2: Valid";
-    }
-
-    if (!ocspResp.hasValidSignature3(certChain[0])) {
-        qDebug() << "Signature3: Invalid";
-    } else {
-        qDebug() << "Signature3: Valid";
+        qDebug() << "Signature: Valid";
     }
 
     switch (ocspResp.responseStatus()) {
