@@ -132,13 +132,24 @@ int main(int argc, char **argv)
     }
 
     // Check signature
-    QList<QSslCertificate> caCerts = QSslSocket::defaultCaCertificates();
-    certChain.removeFirst();
+    certChain.removeFirst(); // Remove the leaf
 
-    if (!ocspResp.hasValidSignature(certChain[0])) {
-        qDebug() << "Signature: Invalid";
+    if (!ocspResp.hasValidSignature1(certChain)) {
+        qDebug() << "Signature1: Invalid";
     } else {
-        qDebug() << "Signature: Valid";
+        qDebug() << "Signature1: Valid";
+    }
+
+    if (!ocspResp.hasValidSignature2(certChain)) {
+        qDebug() << "Signature2: Invalid";
+    } else {
+        qDebug() << "Signature2: Valid";
+    }
+
+    if (!ocspResp.hasValidSignature3(certChain[0])) {
+        qDebug() << "Signature3: Invalid";
+    } else {
+        qDebug() << "Signature3: Valid";
     }
 
     switch (ocspResp.responseStatus()) {

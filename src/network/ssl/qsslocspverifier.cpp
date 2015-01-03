@@ -307,7 +307,11 @@ void QSslOcspReplyPrivate::decodeResponse(const QByteArray &replyArray)
     }
 }
 
-bool QSslOcspReply::hasValidSignature(const QSslCertificate &issuer) const
+/**
+ * This version takes the whole issuer chain, and adds them as intermediates.
+ * It also sets up the CA store.
+ */
+bool QSslOcspReply::hasValidSignature1(const QList<QSslCertificate> &issuers) const
 {
     // Create the certificate store
     X509_STORE *certStore = q_X509_STORE_new();
@@ -324,8 +328,119 @@ bool QSslOcspReply::hasValidSignature(const QSslCertificate &issuer) const
         q_X509_STORE_free(certStore);
         return false;
     }
-    
-    qDebug() << "Added issuer" << issuer.subjectInfo(QSslCertificate::CommonName);
+
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+    foreach (const QSslCertificate &cert, issuers)
+        q_sk_push( (_STACK *)intermediates, reinterpret_cast<X509 *>(cert.handle()));
+#else
+    foreach (const QSslCertificate &cert, issuers)
+        q_sk_push( (STACK *)intermediates, reinterpret_cast<X509 *>(cert.handle()));
+#endif
+
+    foreach (const QSslCertificate &caCertificate, QSslSocket::defaultCaCertificates())
+        q_X509_STORE_add_cert(certStore, (X509 *)caCertificate.handle());
+
+    int verifyResult = q_OCSP_basic_verify(d->basicresp, intermediates, certStore, OCSP_TRUSTOTHER);
+
+    // A verify result is a failure if it is 0 or less
+    if (verifyResult <= 0) {
+        unsigned long errnum = q_ERR_get_error();
+        const char *error = q_ERR_error_string(errnum, 0);
+
+        qDebug() << "OCSP response verification failed" << verifyResult;
+        qDebug() << "Error was: " << error;
+        // ### TODO: Fix mem leak
+        return false;
+    }
+    qDebug() << "OCSP response verification good";
+
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+    q_sk_free( (_STACK *) intermediates);
+#else
+    q_sk_free( (STACK *) intermediates);
+#endif
+    q_X509_STORE_free(certStore);
+
+    return true;
+}
+
+/**
+ * This version takes the whole issuer chain, and adds them as intermediates.
+ * It does not set up any CAs.
+ */
+bool QSslOcspReply::hasValidSignature2(const QList<QSslCertificate> &issuers) const
+{
+    // Create the certificate store
+    X509_STORE *certStore = q_X509_STORE_new();
+    if (!certStore) {
+        qWarning() << "Unable to create certificate store";
+        return false;
+    }
+
+    // Build a stack to put the issuer in
+    STACK_OF(X509) *intermediates = 0;
+    intermediates = (STACK_OF(X509) *) q_sk_new_null();
+
+    if (!intermediates) {
+        q_X509_STORE_free(certStore);
+        return false;
+    }
+
+    //    qDebug() << "Added issuer" << issuer.subjectInfo(QSslCertificate::CommonName);
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+    foreach (const QSslCertificate &cert, issuers)
+        q_sk_push( (_STACK *)intermediates, reinterpret_cast<X509 *>(cert.handle()));
+#else
+    foreach (const QSslCertificate &cert, issuers)
+        q_sk_push( (STACK *)intermediates, reinterpret_cast<X509 *>(cert.handle()));
+#endif
+
+    int verifyResult = q_OCSP_basic_verify(d->basicresp, intermediates, certStore, OCSP_TRUSTOTHER);
+
+    // A verify result is a failure if it is 0 or less
+    if (verifyResult <= 0) {
+        unsigned long errnum = q_ERR_get_error();
+        const char *error = q_ERR_error_string(errnum, 0);
+
+        qDebug() << "OCSP response verification failed" << verifyResult;
+        qDebug() << "Error was: " << error;
+        // ### TODO: Fix mem leak
+        return false;
+    }
+    qDebug() << "OCSP response verification good";
+
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+    q_sk_free( (_STACK *) intermediates);
+#else
+    q_sk_free( (STACK *) intermediates);
+#endif
+    q_X509_STORE_free(certStore);
+
+    return true;
+}
+
+/**
+ * This version takes the just the actual issuer, and adds it as an intermediate.
+ * It does not set up any CAs.
+ */
+bool QSslOcspReply::hasValidSignature3(const QSslCertificate &issuer) const
+{
+    // Create the certificate store
+    X509_STORE *certStore = q_X509_STORE_new();
+    if (!certStore) {
+        qWarning() << "Unable to create certificate store";
+        return false;
+    }
+
+    // Build a stack to put the issuer in
+    STACK_OF(X509) *intermediates = 0;
+    intermediates = (STACK_OF(X509) *) q_sk_new_null();
+
+    if (!intermediates) {
+        q_X509_STORE_free(certStore);
+        return false;
+    }
+
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L
     q_sk_push( (_STACK *)intermediates, reinterpret_cast<X509 *>(issuer.handle()));
 #else
