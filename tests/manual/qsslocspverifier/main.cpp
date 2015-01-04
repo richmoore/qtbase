@@ -100,9 +100,11 @@ int main(int argc, char **argv)
 
     QList<QSslCertificate> certChain = socket.peerCertificateChain();
 
-    qDebug() << "Chain length" << certChain.length();
-    qDebug() << "Subject:" << certChain[0].subjectInfo(QSslCertificate::CommonName);
-    qDebug() << "Issuer:" << certChain[0].issuerInfo(QSslCertificate::Organization);
+    qDebug() << "Chain length:" << certChain.length();
+    foreach (const QSslCertificate &cert, certChain) {
+        qDebug() << "Subject:" << cert.subjectInfo(QSslCertificate::CommonName);
+        qDebug() << "Issuer:" << cert.issuerInfo(QSslCertificate::Organization);
+    }
 
     QSslOcspRequest ocspReq(certChain[1], certChain[0]);
     if (ocspReq.isNull()) {
@@ -113,11 +115,11 @@ int main(int argc, char **argv)
     // Send request
     QNetworkAccessManager manager;
     QNetworkReply *networkReply = ocspReq.send(&manager);
-    qDebug() << "request in flight";
+    qDebug() << "OCSP request in flight";
     waitForSignal(networkReply, SIGNAL(finished()));
 
     if (networkReply->error() != QNetworkReply::NoError) {
-        qDebug() << "Network error";
+        qDebug() << "Network error, " << networkReply->errorString();
         return 1;
     }
 

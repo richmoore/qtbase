@@ -68,7 +68,7 @@
 QT_BEGIN_NAMESPACE
 
 // Allowed clock skew in seconds
-static int allowedClockSkew = 5;
+static int allowedClockSkew = 10*60;
 // Max age allowed for precomputed responses (seconds), set to -1 to allow responses of
 // any age (not 0 like the book says, the book is wrong!). Setting to 12 weeks for now.
 static int maxResponseAge = 12*60*60*24*7;
@@ -302,6 +302,10 @@ void QSslOcspReplyPrivate::decodeResponse(const QByteArray &replyArray)
     int validityResult = q_OCSP_check_validity(thisUpdate, nextUpdate, allowedClockSkew, maxResponseAge);
     if (!validityResult) {
         qDebug() << "Validity check failed" << validityResult;
+        unsigned long errnum = q_ERR_get_error();
+        const char *error = q_ERR_error_string(errnum, 0);
+        qDebug() << "Error was: " << error;
+
         responseStatus = QSslOcspReply::ResponseInvalid;
         return;
     }
@@ -340,7 +344,7 @@ bool QSslOcspReply::hasValidSignature(const QList<QSslCertificate> &issuers) con
     // Get the certificates from the response itself too
     foreach (QSslCertificate cert,
              QSslSocketBackendPrivate::STACKOFX509_to_QSslCertificates(d->basicresp->certs)) {
-        qDebug() << cert;
+        //qDebug() << cert;
         X509 *x509 = q_X509_dup(reinterpret_cast<X509 *>(cert.handle()));
         q_sk_push( (STACK *)intermediates, x509);
     }
