@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2015 Mikkel Krautz <mikkel@krautz.dk>
+** Copyright (C) 2016 Richard J. Moore <rich@kde.org>
 ** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtNetwork module of the Qt Toolkit.

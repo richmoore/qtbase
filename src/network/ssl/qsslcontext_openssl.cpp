@@ -3,6 +3,7 @@
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Copyright (C) 2014 BlackBerry Limited. All rights reserved.
 ** Copyright (C) 2014 Governikus GmbH & Co. KG.
+** Copyright (C) 2016 Richard J. Moore <rich@kde.org>
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the QtNetwork module of the Qt Toolkit.
