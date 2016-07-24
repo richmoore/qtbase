@@ -267,6 +267,7 @@ int q_EVP_CipherFinal(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl);
 const EVP_CIPHER *q_EVP_des_cbc();
 const EVP_CIPHER *q_EVP_des_ede3_cbc();
 const EVP_CIPHER *q_EVP_rc2_cbc();
+const EVP_MD *q_EVP_sha1();
 int q_EVP_PKEY_assign(EVP_PKEY *a, int b, char *c);
 Q_AUTOTEST_EXPORT int q_EVP_PKEY_set1_RSA(EVP_PKEY *a, RSA *b);
 int q_EVP_PKEY_set1_DSA(EVP_PKEY *a, DSA *b);
@@ -279,6 +280,7 @@ DSA *q_EVP_PKEY_get1_DSA(EVP_PKEY *a);
 #ifndef OPENSSL_NO_EC
 EC_KEY *q_EVP_PKEY_get1_EC_KEY(EVP_PKEY *a);
 #endif
+int q_EVP_PKEY_base_id(EVP_PKEY *a);
 int q_EVP_PKEY_type(int a);
 Q_AUTOTEST_EXPORT EVP_PKEY *q_EVP_PKEY_new();
 int q_i2d_X509(X509 *a, unsigned char **b);
@@ -450,6 +452,7 @@ void *q_ASN1_dup(i2d_of_void *i2d, d2i_of_void *d2i, char *x);
 X509 *q_X509_dup(X509 *a);
 #endif
 void q_X509_print(BIO *a, X509*b);
+int q_X509_digest(const X509 *x509, const EVP_MD *type, unsigned char *md, unsigned int *len);
 ASN1_OBJECT *q_X509_EXTENSION_get_object(X509_EXTENSION *a);
 void q_X509_free(X509 *a);
 X509_EXTENSION *q_X509_get_ext(X509 *a, int b);
@@ -469,6 +472,9 @@ int q_ASN1_STRING_print(BIO *a, ASN1_STRING *b);
 int q_X509_check_issued(X509 *a, X509 *b);
 X509_NAME *q_X509_get_issuer_name(X509 *a);
 X509_NAME *q_X509_get_subject_name(X509 *a);
+long q_X509_get_version(X509 *a);
+ASN1_INTEGER *q_X509_get_serialNumber(X509 *a);
+EVP_PKEY *q_X509_get_pubkey(X509 *a);
 int q_X509_verify_cert(X509_STORE_CTX *ctx);
 int q_X509_NAME_entry_count(X509_NAME *a);
 X509_NAME_ENTRY *q_X509_NAME_get_entry(X509_NAME *a,int b);
