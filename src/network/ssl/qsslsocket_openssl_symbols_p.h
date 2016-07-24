@@ -222,10 +222,10 @@ int q_ASN1_STRING_length(ASN1_STRING *a);
 int q_ASN1_STRING_to_UTF8(unsigned char **a, ASN1_STRING *b);
 long q_BIO_ctrl(BIO *a, int b, long c, void *d);
 int q_BIO_free(BIO *a);
-BIO *q_BIO_new(BIO_METHOD *a);
+BIO *q_BIO_new(const BIO_METHOD *a);
 BIO *q_BIO_new_mem_buf(void *a, int b);
 int q_BIO_read(BIO *a, void *b, int c);
-BIO_METHOD *q_BIO_s_mem();
+const BIO_METHOD *q_BIO_s_mem();
 int q_BIO_write(BIO *a, const void *b, int c);
 int q_BN_num_bits(const BIGNUM *a);
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
@@ -344,6 +344,7 @@ void q_sk_free(STACK *a);
 char * q_sk_value(STACK *a, int b);
 #endif
 int q_SSL_accept(SSL *a);
+int q_SSL_session_reused(SSL *a);
 int q_SSL_clear(SSL *a);
 char *q_SSL_CIPHER_description(SSL_CIPHER *a, char *b, int c);
 int q_SSL_CIPHER_get_bits(SSL_CIPHER *a, int *b);
@@ -513,7 +514,7 @@ BIGNUM *q_BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret);
 
 #ifndef OPENSSL_NO_EC
 // EC Diffie-Hellman support
-EC_KEY *q_EC_KEY_dup(const EC_KEY *src);
+EC_KEY *q_EC_KEY_dup(EC_KEY *src);
 EC_KEY *q_EC_KEY_new_by_curve_name(int nid);
 void q_EC_KEY_free(EC_KEY *ecdh);
 #define q_SSL_CTX_set_tmp_ecdh(ctx, ecdh) q_SSL_CTX_ctrl((ctx), SSL_CTRL_SET_TMP_ECDH, 0, (char *)ecdh)

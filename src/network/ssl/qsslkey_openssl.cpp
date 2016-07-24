@@ -178,7 +178,7 @@ int QSslKeyPrivate::length() const
 
     switch (algorithm) {
         case QSsl::Rsa: return q_RSA_bits(rsa);
-        case QSsl::Dsa: return q_DSA_bits(dsa);
+        case QSsl::Dsa: return 0; //### TODO: missing openssl method q_DSA_bits(dsa);
 #ifndef OPENSSL_NO_EC
         case QSsl::Ec: return q_EC_GROUP_get_degree(q_EC_KEY_get0_group(ec));
 #endif
