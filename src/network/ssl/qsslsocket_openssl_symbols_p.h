@@ -500,6 +500,8 @@ DH *q_DH_new();
 void q_DH_free(DH *dh);
 DH *q_d2i_DHparams(DH **a, const unsigned char **pp, long length);
 int q_i2d_DHparams(DH *a, unsigned char **p);
+void q_DH_get0_pqg(DH *dh, const BIGNUM **p, const BIGNUM **q, const BIGNUM **g);
+int q_DH_bits(DH *dh);
 int q_DH_check(DH *dh, int *codes);
 
 BIGNUM *q_BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret);
