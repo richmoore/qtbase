@@ -1464,12 +1464,15 @@ void QSslSocketBackendPrivate::continueHandshake()
         configuration.peerSessionShared = true;
 
 #ifdef QT_DECRYPT_SSL_TRAFFIC
-    if (ssl->session && ssl->s3) {
-        const char *mk = reinterpret_cast<const char *>(ssl->session->master_key);
-        QByteArray masterKey(mk, ssl->session->master_key_length);
-        const char *random = reinterpret_cast<const char *>(ssl->s3->client_random);
-        QByteArray clientRandom(random, SSL3_RANDOM_SIZE);
+    if (q_SSL_get_session(ssl)) {
+        size_t master_key_len = q_SSL_SESSION_get_master_key(q_SSL_get_session(ssl), 0, 0);
+        size_t client_random_len = q_SSL_get_client_random(ssl, 0, 0);
+        QByteArray masterKey(int(master_key_len), 0); // Will not overflow
+        QByteArray clientRandom(int(client_random_len), 0); // Will not overflow
 
+        q_SSL_SESSION_get_master_key(q_SSL_get_session(ssl), masterKey.data(), masterKey.size());
+        q_SSL_get_client_random(ssl, clientRandom.data(), clientRandom.size());
+        
         // different format, needed for e.g. older Wireshark versions:
 //        const char *sid = reinterpret_cast<const char *>(ssl->session->session_id);
 //        QByteArray sessionID(sid, ssl->session->session_id_length);
