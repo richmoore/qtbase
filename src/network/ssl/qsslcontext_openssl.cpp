@@ -329,21 +329,6 @@ init_context:
         q_DH_free(dh);
     }
 
-#ifndef OPENSSL_NO_EC
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L
-    if (q_SSLeay() >= 0x10002000L) {
-        q_SSL_CTX_ctrl(sslContext->ctx, SSL_CTRL_SET_ECDH_AUTO, 1, NULL);
-    } else
-#endif
-    {
-        // Set temp ECDH params
-        EC_KEY *ecdh = 0;
-        ecdh = q_EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
-        q_SSL_CTX_set_tmp_ecdh(sslContext->ctx, ecdh);
-        q_EC_KEY_free(ecdh);
-    }
-#endif // OPENSSL_NO_EC
-
 #if OPENSSL_VERSION_NUMBER >= 0x10001000L && !defined(OPENSSL_NO_PSK)
     if (!client)
         q_SSL_CTX_use_psk_identity_hint(sslContext->ctx, sslContext->sslConfiguration.preSharedKeyIdentityHint().constData());
@@ -508,7 +493,7 @@ bool QSslContext::cacheSession(SSL* ssl)
             unsigned char *data = reinterpret_cast<unsigned char *>(m_sessionASN1.data());
             if (!q_i2d_SSL_SESSION(session, &data))
                 qCWarning(lcSsl, "could not store persistent version of SSL session");
-            m_sessionTicketLifeTimeHint = session->tlsext_tick_lifetime_hint;
+            m_sessionTicketLifeTimeHint = q_SSL_SESSION_get_ticket_lifetime_hint(session);
         }
     }
 
