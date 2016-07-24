@@ -94,66 +94,14 @@ void QSslContext::initSslContext(QSslContext *sslContext, QSslSocket::SslMode mo
     bool reinitialized = false;
     bool unsupportedProtocol = false;
 init_context:
-    switch (sslContext->sslConfiguration.protocol()) {
-    case QSsl::SslV2:
+    if (sslContext->sslConfiguration.protocol() == QSsl::SslV2) {
         // SSL 2 no is no longer supported, but chosen deliberately -> error
         sslContext->ctx = 0;
         unsupportedProtocol = true;
-        break;
-    case QSsl::SslV3:
-#ifndef OPENSSL_NO_SSL3_METHOD
-        sslContext->ctx = q_SSL_CTX_new(client ? q_SSLv3_client_method() : q_SSLv3_server_method());
-#else
-        // SSL 3 not supported by the system, but chosen deliberately -> error
-        sslContext->ctx = 0;
-        unsupportedProtocol = true;
-#endif
-        break;
-    case QSsl::SecureProtocols:
-        // SSLv2 and SSLv3 will be disabled by SSL options
-        // But we need q_SSLv23_server_method() otherwise AnyProtocol will be unable to connect on Win32.
-    case QSsl::TlsV1SslV3:
-        // SSLv2 will will be disabled by SSL options
-    case QSsl::AnyProtocol:
-    default:
-        sslContext->ctx = q_SSL_CTX_new(client ? q_SSLv23_client_method() : q_SSLv23_server_method());
-        break;
-    case QSsl::TlsV1_0:
-        sslContext->ctx = q_SSL_CTX_new(client ? q_TLSv1_client_method() : q_TLSv1_server_method());
-        break;
-    case QSsl::TlsV1_1:
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
-        sslContext->ctx = q_SSL_CTX_new(client ? q_TLSv1_1_client_method() : q_TLSv1_1_server_method());
-#else
-        // TLS 1.1 not supported by the system, but chosen deliberately -> error
-        sslContext->ctx = 0;
-        unsupportedProtocol = true;
-#endif
-        break;
-    case QSsl::TlsV1_2:
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
-        sslContext->ctx = q_SSL_CTX_new(client ? q_TLSv1_2_client_method() : q_TLSv1_2_server_method());
-#else
-        // TLS 1.2 not supported by the system, but chosen deliberately -> error
-        sslContext->ctx = 0;
-        unsupportedProtocol = true;
-#endif
-        break;
-    case QSsl::TlsV1_0OrLater:
-        // Specific protocols will be specified via SSL options.
-        sslContext->ctx = q_SSL_CTX_new(client ? q_SSLv23_client_method() : q_SSLv23_server_method());
-        break;
-    case QSsl::TlsV1_1OrLater:
-    case QSsl::TlsV1_2OrLater:
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
-        // Specific protocols will be specified via SSL options.
-        sslContext->ctx = q_SSL_CTX_new(client ? q_SSLv23_client_method() : q_SSLv23_server_method());
-#else
-        // TLS 1.1/1.2 not supported by the system, but chosen deliberately -> error
-        sslContext->ctx = 0;
-        unsupportedProtocol = true;
-#endif
-        break;
+    }
+    else {
+        // The ssl options will actually control the supported methods
+        sslContext->ctx = q_SSL_CTX_new(client ? q_TLS_client_method() : q_TLS_server_method());
     }
 
     if (!sslContext->ctx) {

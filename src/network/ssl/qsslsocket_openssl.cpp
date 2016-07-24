@@ -629,7 +629,7 @@ QString QSslSocketPrivate::sslLibraryBuildVersionString()
 */
 void QSslSocketPrivate::resetDefaultCiphers()
 {
-    SSL_CTX *myCtx = q_SSL_CTX_new(q_SSLv23_client_method());
+    SSL_CTX *myCtx = q_SSL_CTX_new(q_TLS_client_method());
     SSL *mySsl = q_SSL_new(myCtx);
 
     QList<QSslCipher> ciphers;
