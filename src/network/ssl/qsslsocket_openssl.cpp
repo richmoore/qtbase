@@ -98,70 +98,6 @@ bool QSslSocketPrivate::s_loadRootCertsOnDemand = false;
 int QSslSocketBackendPrivate::s_indexForSSLExtraData = -1;
 #endif
 
-/* \internal
-
-    From OpenSSL's thread(3) manual page:
-
-    OpenSSL can safely be used in multi-threaded applications provided that at
-    least two callback functions are set.
-
-    locking_function(int mode, int n, const char *file, int line) is needed to
-    perform locking on shared data structures.  (Note that OpenSSL uses a
-    number of global data structures that will be implicitly shared
-    whenever multiple threads use OpenSSL.)  Multi-threaded
-    applications will crash at random if it is not set.  ...
-    ...
-    id_function(void) is a function that returns a thread ID. It is not
-    needed on Windows nor on platforms where getpid() returns a different
-    ID for each thread (most notably Linux)
-*/
-class QOpenSslLocks
-{
-public:
-    inline QOpenSslLocks()
-        : initLocker(QMutex::Recursive),
-          locksLocker(QMutex::Recursive)
-    {
-        QMutexLocker locker(&locksLocker);
-        int numLocks = q_CRYPTO_num_locks();
-        locks = new QMutex *[numLocks];
-        memset(locks, 0, numLocks * sizeof(QMutex *));
-    }
-    inline ~QOpenSslLocks()
-    {
-        QMutexLocker locker(&locksLocker);
-        for (int i = 0; i < q_CRYPTO_num_locks(); ++i)
-            delete locks[i];
-        delete [] locks;
-
-        QSslSocketPrivate::deinitialize();
-    }
-    inline QMutex *lock(int num)
-    {
-        QMutexLocker locker(&locksLocker);
-        QMutex *tmp = locks[num];
-        if (!tmp)
-            tmp = locks[num] = new QMutex(QMutex::Recursive);
-        return tmp;
-    }
-
-    QMutex *globalLock()
-    {
-        return &locksLocker;
-    }
-
-    QMutex *initLock()
-    {
-        return &initLocker;
-    }
-
-private:
-    QMutex initLocker;
-    QMutex locksLocker;
-    QMutex **locks;
-};
-Q_GLOBAL_STATIC(QOpenSslLocks, openssl_locks)
-
 QString QSslSocketBackendPrivate::getErrorsFromOpenSsl()
 {
     QString errorString;
@@ -176,21 +112,6 @@ QString QSslSocketBackendPrivate::getErrorsFromOpenSsl()
 }
 
 extern "C" {
-static void locking_function(int mode, int lockNumber, const char *, int)
-{
-    QMutex *mutex = openssl_locks()->lock(lockNumber);
-
-    // Lock or unlock it
-    if (mode & CRYPTO_LOCK)
-        mutex->lock();
-    else
-        mutex->unlock();
-}
-static unsigned long id_function()
-{
-    return (quintptr)QThread::currentThreadId();
-}
-
 #if OPENSSL_VERSION_NUMBER >= 0x10001000L && !defined(OPENSSL_NO_PSK)
 static unsigned int q_ssl_psk_client_callback(SSL *ssl,
                                               const char *hint,
@@ -470,8 +391,6 @@ void QSslSocketBackendPrivate::destroySslContext()
 */
 void QSslSocketPrivate::deinitialize()
 {
-    q_CRYPTO_set_id_callback(0);
-    q_CRYPTO_set_locking_callback(0);
     q_ERR_free_strings();
 }
 
@@ -492,15 +411,12 @@ bool QSslSocketPrivate::ensureLibraryLoaded()
     if (!q_resolveOpenSslSymbols())
         return false;
 
-    // Check if the library itself needs to be initialized.
-    QMutexLocker locker(openssl_locks()->initLock());
+    //### Do we need to ensure this is behind a mutex with openssl1.1?
 
     if (!s_libraryLoaded) {
         s_libraryLoaded = true;
 
         // Initialize OpenSSL.
-        q_CRYPTO_set_id_callback(id_function);
-        q_CRYPTO_set_locking_callback(locking_function);
         if (q_SSL_library_init() != 1)
             return false;
         q_SSL_load_error_strings();
@@ -522,7 +438,7 @@ bool QSslSocketPrivate::ensureLibraryLoaded()
 
 void QSslSocketPrivate::ensureCiphersAndCertsLoaded()
 {
-    QMutexLocker locker(openssl_locks()->initLock());
+  //QMutexLocker locker(openssl_locks()->initLock());
     if (s_loadedCiphersAndCerts)
         return;
     s_loadedCiphersAndCerts = true;

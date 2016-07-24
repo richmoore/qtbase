@@ -247,10 +247,6 @@ BN_ULONG q_BN_mod_word(const BIGNUM *a, BN_ULONG w);
 const EC_GROUP* q_EC_KEY_get0_group(const EC_KEY* k);
 int q_EC_GROUP_get_degree(const EC_GROUP* g);
 #endif
-int q_CRYPTO_num_locks();
-void q_CRYPTO_set_locking_callback(void (*a)(int, int, const char *, int));
-void q_CRYPTO_set_id_callback(unsigned long (*a)());
-void q_CRYPTO_free(void *a);
 DSA *q_DSA_new();
 void q_DSA_free(DSA *a);
 int q_DSA_bits(DSA *a);
@@ -538,6 +534,7 @@ DSA *q_d2i_DSAPrivateKey(DSA **a, unsigned char **pp, long length);
 #define q_OpenSSL_add_all_algorithms() q_OPENSSL_add_all_algorithms_conf()
 void q_OPENSSL_add_all_algorithms_noconf();
 void q_OPENSSL_add_all_algorithms_conf();
+void q_OPENSSL_free(void *addr);
 int q_SSL_CTX_load_verify_locations(SSL_CTX *ctx, const char *CAfile, const char *CApath);
 long q_SSLeay();
 const char *q_SSLeay_version(int type);
