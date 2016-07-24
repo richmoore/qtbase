@@ -96,13 +96,9 @@ void QSslContext::initSslContext(QSslContext *sslContext, QSslSocket::SslMode mo
 init_context:
     switch (sslContext->sslConfiguration.protocol()) {
     case QSsl::SslV2:
-#ifndef OPENSSL_NO_SSL2
-        sslContext->ctx = q_SSL_CTX_new(client ? q_SSLv2_client_method() : q_SSLv2_server_method());
-#else
-        // SSL 2 not supported by the system, but chosen deliberately -> error
+        // SSL 2 no is no longer supported, but chosen deliberately -> error
         sslContext->ctx = 0;
         unsupportedProtocol = true;
-#endif
         break;
     case QSsl::SslV3:
 #ifndef OPENSSL_NO_SSL3_METHOD
