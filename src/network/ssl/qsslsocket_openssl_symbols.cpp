@@ -137,9 +137,6 @@ void qsslSocketCannotResolveSymbolWarning(const char *functionName)
 
 #endif // QT_LINKED_OPENSSL
 
-#ifdef SSLEAY_MACROS
-DEFINEFUNC3(void *, ASN1_dup, i2d_of_void *a, a, d2i_of_void *b, b, char *c, c, return 0, return)
-#endif
 DEFINEFUNC(long, ASN1_INTEGER_get, ASN1_INTEGER *a, a, return 0, return)
 DEFINEFUNC(unsigned char *, ASN1_STRING_data, ASN1_STRING *a, a, return 0, return)
 DEFINEFUNC(int, ASN1_STRING_length, ASN1_STRING *a, a, return 0, return)
@@ -202,10 +199,6 @@ DEFINEFUNC3(int, i2t_ASN1_OBJECT, char *a, a, int b, b, ASN1_OBJECT *c, c, retur
 DEFINEFUNC4(int, OBJ_obj2txt, char *a, a, int b, b, ASN1_OBJECT *c, c, int d, d, return -1, return)
 
 DEFINEFUNC(int, OBJ_obj2nid, const ASN1_OBJECT *a, a, return NID_undef, return)
-#ifdef SSLEAY_MACROS
-DEFINEFUNC6(void *, PEM_ASN1_read_bio, d2i_of_void *a, a, const char *b, b, BIO *c, c, void **d, d, pem_password_cb *e, e, void *f, f, return 0, return)
-DEFINEFUNC6(void *, PEM_ASN1_write_bio, d2i_of_void *a, a, const char *b, b, BIO *c, c, void **d, d, pem_password_cb *e, e, void *f, f, return 0, return)
-#else
 DEFINEFUNC4(DSA *, PEM_read_bio_DSAPrivateKey, BIO *a, a, DSA **b, b, pem_password_cb *c, c, void *d, d, return 0, return)
 DEFINEFUNC4(RSA *, PEM_read_bio_RSAPrivateKey, BIO *a, a, RSA **b, b, pem_password_cb *c, c, void *d, d, return 0, return)
 #ifndef OPENSSL_NO_EC
@@ -216,7 +209,6 @@ DEFINEFUNC7(int, PEM_write_bio_DSAPrivateKey, BIO *a, a, DSA *b, b, const EVP_CI
 DEFINEFUNC7(int, PEM_write_bio_RSAPrivateKey, BIO *a, a, RSA *b, b, const EVP_CIPHER *c, c, unsigned char *d, d, int e, e, pem_password_cb *f, f, void *g, g, return 0, return)
 #ifndef OPENSSL_NO_EC
 DEFINEFUNC7(int, PEM_write_bio_ECPrivateKey, BIO *a, a, EC_KEY *b, b, const EVP_CIPHER *c, c, unsigned char *d, d, int e, e, pem_password_cb *f, f, void *g, g, return 0, return)
-#endif
 #endif
 DEFINEFUNC4(DSA *, PEM_read_bio_DSA_PUBKEY, BIO *a, a, DSA **b, b, pem_password_cb *c, c, void *d, d, return 0, return)
 DEFINEFUNC4(RSA *, PEM_read_bio_RSA_PUBKEY, BIO *a, a, RSA **b, b, pem_password_cb *c, c, void *d, d, return 0, return)
@@ -294,9 +286,7 @@ DEFINEFUNC(const SSL_METHOD *, TLS_client_method, DUMMYARG, DUMMYARG, return 0, 
 DEFINEFUNC(const SSL_METHOD *, TLS_server_method, DUMMYARG, DUMMYARG, return 0, return)
 DEFINEFUNC3(int, SSL_write, SSL *a, a, const void *b, b, int c, c, return -1, return)
 DEFINEFUNC2(int, X509_cmp, X509 *a, a, X509 *b, b, return -1, return)
-#ifndef SSLEAY_MACROS
 DEFINEFUNC(X509 *, X509_dup, X509 *a, a, return 0, return)
-#endif
 DEFINEFUNC2(void, X509_print, BIO *a, a, X509 *b, b, return, DUMMYARG);
 DEFINEFUNC4(int, X509_digest, const X509 *x509, x509, const EVP_MD *type, type, unsigned char *md, md, unsigned int *len, len, return -1, return)
 DEFINEFUNC(ASN1_OBJECT *, X509_EXTENSION_get_object, X509_EXTENSION *a, a, return 0, return)
@@ -334,18 +324,6 @@ DEFINEFUNC(int, X509_STORE_CTX_get_error_depth, X509_STORE_CTX *a, a, return -1,
 DEFINEFUNC(X509 *, X509_STORE_CTX_get_current_cert, X509_STORE_CTX *a, a, return 0, return)
 DEFINEFUNC(STACK_OF(X509) *, X509_STORE_CTX_get_chain, X509_STORE_CTX *a, a, return 0, return)
 DEFINEFUNC(X509_STORE_CTX *, X509_STORE_CTX_new, DUMMYARG, DUMMYARG, return 0, return)
-#ifdef SSLEAY_MACROS
-DEFINEFUNC2(int, i2d_DSAPrivateKey, const DSA *a, a, unsigned char **b, b, return -1, return)
-DEFINEFUNC2(int, i2d_RSAPrivateKey, const RSA *a, a, unsigned char **b, b, return -1, return)
-#ifndef OPENSSL_NO_EC
-DEFINEFUNC2(int, i2d_ECPrivateKey, const EC_KEY *a, a, unsigned char **b, b, return -1, return)
-#endif
-DEFINEFUNC3(RSA *, d2i_RSAPrivateKey, RSA **a, a, unsigned char **b, b, long c, c, return 0, return)
-DEFINEFUNC3(DSA *, d2i_DSAPrivateKey, DSA **a, a, unsigned char **b, b, long c, c, return 0, return)
-#ifndef OPENSSL_NO_EC
-DEFINEFUNC3(EC_KEY *, d2i_ECPrivateKey, EC_KEY **a, a, unsigned char **b, b, long c, c, return 0, return)
-#endif
-#endif
 DEFINEFUNC(void, OPENSSL_add_all_algorithms_noconf, void, DUMMYARG, return, DUMMYARG)
 DEFINEFUNC(void, OPENSSL_add_all_algorithms_conf, void, DUMMYARG, return, DUMMYARG)
 DEFINEFUNC(void, OPENSSL_free, void *a, a, return, DUMMYARG)
@@ -713,9 +691,6 @@ bool q_resolveOpenSslSymbols()
         // failed to load them
         return false;
 
-#ifdef SSLEAY_MACROS
-    RESOLVEFUNC(ASN1_dup)
-#endif
     RESOLVEFUNC(ASN1_INTEGER_get)
     RESOLVEFUNC(ASN1_STRING_data)
     RESOLVEFUNC(ASN1_STRING_length)
@@ -775,9 +750,6 @@ bool q_resolveOpenSslSymbols()
     RESOLVEFUNC(i2t_ASN1_OBJECT)
     RESOLVEFUNC(OBJ_obj2txt)
     RESOLVEFUNC(OBJ_obj2nid)
-#ifdef SSLEAY_MACROS // ### verify
-    RESOLVEFUNC(PEM_ASN1_read_bio)
-#else
     RESOLVEFUNC(PEM_read_bio_DSAPrivateKey)
     RESOLVEFUNC(PEM_read_bio_RSAPrivateKey)
 #ifndef OPENSSL_NO_EC
@@ -788,7 +760,6 @@ bool q_resolveOpenSslSymbols()
     RESOLVEFUNC(PEM_write_bio_RSAPrivateKey)
 #ifndef OPENSSL_NO_EC
     RESOLVEFUNC(PEM_write_bio_ECPrivateKey)
-#endif
 #endif
     RESOLVEFUNC(PEM_read_bio_DSA_PUBKEY)
     RESOLVEFUNC(PEM_read_bio_RSA_PUBKEY)
@@ -882,9 +853,7 @@ bool q_resolveOpenSslSymbols()
     RESOLVEFUNC(X509_STORE_CTX_get_current_cert)
     RESOLVEFUNC(X509_STORE_CTX_get_chain)
     RESOLVEFUNC(X509_cmp)
-#ifndef SSLEAY_MACROS
     RESOLVEFUNC(X509_dup)
-#endif
     RESOLVEFUNC(X509_print)
     RESOLVEFUNC(X509_EXTENSION_get_object)
     RESOLVEFUNC(X509_free)
@@ -907,12 +876,6 @@ bool q_resolveOpenSslSymbols()
     RESOLVEFUNC(X509_verify_cert)
     RESOLVEFUNC(d2i_X509)
     RESOLVEFUNC(i2d_X509)
-#ifdef SSLEAY_MACROS
-    RESOLVEFUNC(i2d_DSAPrivateKey)
-    RESOLVEFUNC(i2d_RSAPrivateKey)
-    RESOLVEFUNC(d2i_DSAPrivateKey)
-    RESOLVEFUNC(d2i_RSAPrivateKey)
-#endif
     RESOLVEFUNC(OPENSSL_add_all_algorithms_noconf)
     RESOLVEFUNC(OPENSSL_add_all_algorithms_conf)
     RESOLVEFUNC(OPENSSL_free)

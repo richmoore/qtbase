@@ -278,12 +278,6 @@ int q_OBJ_ln2nid(const char *s);
 int q_i2t_ASN1_OBJECT(char *buf, int buf_len, ASN1_OBJECT *obj);
 int q_OBJ_obj2txt(char *buf, int buf_len, ASN1_OBJECT *obj, int no_name);
 int q_OBJ_obj2nid(const ASN1_OBJECT *a);
-#ifdef SSLEAY_MACROS
-// ### verify
-void *q_PEM_ASN1_read_bio(d2i_of_void *a, const char *b, BIO *c, void **d, pem_password_cb *e,
-                          void *f);
-// ### ditto for write
-#else
 DSA *q_PEM_read_bio_DSAPrivateKey(BIO *a, DSA **b, pem_password_cb *c, void *d);
 RSA *q_PEM_read_bio_RSAPrivateKey(BIO *a, RSA **b, pem_password_cb *c, void *d);
 #ifndef OPENSSL_NO_EC
@@ -297,7 +291,6 @@ int q_PEM_write_bio_RSAPrivateKey(BIO *a, RSA *b, const EVP_CIPHER *c, unsigned 
 #ifndef OPENSSL_NO_EC
 int q_PEM_write_bio_ECPrivateKey(BIO *a, EC_KEY *b, const EVP_CIPHER *c, unsigned char *d,
                                   int e, pem_password_cb *f, void *g);
-#endif
 #endif
 DSA *q_PEM_read_bio_DSA_PUBKEY(BIO *a, DSA **b, pem_password_cb *c, void *d);
 RSA *q_PEM_read_bio_RSA_PUBKEY(BIO *a, RSA **b, pem_password_cb *c, void *d);
@@ -377,13 +370,7 @@ const SSL_METHOD *q_TLS_client_method();
 const SSL_METHOD *q_TLS_server_method();
 int q_SSL_write(SSL *a, const void *b, int c);
 int q_X509_cmp(X509 *a, X509 *b);
-#ifdef SSLEAY_MACROS
-void *q_ASN1_dup(i2d_of_void *i2d, d2i_of_void *d2i, char *x);
-#define q_X509_dup(x509) (X509 *)q_ASN1_dup((i2d_of_void *)q_i2d_X509, \
-                (d2i_of_void *)q_d2i_X509,(char *)x509)
-#else
 X509 *q_X509_dup(X509 *a);
-#endif
 void q_X509_print(BIO *a, X509*b);
 int q_X509_digest(const X509 *x509, const EVP_MD *type, unsigned char *md, unsigned int *len);
 ASN1_OBJECT *q_X509_EXTENSION_get_object(X509_EXTENSION *a);
@@ -456,27 +443,6 @@ void q_PKCS12_free(PKCS12 *pkcs12);
 
 #define q_BIO_get_mem_data(b, pp) (int)q_BIO_ctrl(b,BIO_CTRL_INFO,0,(char *)pp)
 #define q_BIO_pending(b) (int)q_BIO_ctrl(b,BIO_CTRL_PENDING,0,NULL)
-#ifdef SSLEAY_MACROS
-int     q_i2d_DSAPrivateKey(const DSA *a, unsigned char **pp);
-int     q_i2d_RSAPrivateKey(const RSA *a, unsigned char **pp);
-RSA *q_d2i_RSAPrivateKey(RSA **a, unsigned char **pp, long length);
-DSA *q_d2i_DSAPrivateKey(DSA **a, unsigned char **pp, long length);
-#define q_PEM_read_bio_RSAPrivateKey(bp, x, cb, u) \
-        (RSA *)q_PEM_ASN1_read_bio( \
-        (void *(*)(void**, const unsigned char**, long int))q_d2i_RSAPrivateKey, PEM_STRING_RSA, bp, (void **)x, cb, u)
-#define q_PEM_read_bio_DSAPrivateKey(bp, x, cb, u) \
-        (DSA *)q_PEM_ASN1_read_bio( \
-        (void *(*)(void**, const unsigned char**, long int))q_d2i_DSAPrivateKey, PEM_STRING_DSA, bp, (void **)x, cb, u)
-#define q_PEM_write_bio_RSAPrivateKey(bp,x,enc,kstr,klen,cb,u) \
-        PEM_ASN1_write_bio((int (*)(void*, unsigned char**))q_i2d_RSAPrivateKey,PEM_STRING_RSA,\
-                           bp,(char *)x,enc,kstr,klen,cb,u)
-#define q_PEM_write_bio_DSAPrivateKey(bp,x,enc,kstr,klen,cb,u) \
-        PEM_ASN1_write_bio((int (*)(void*, unsigned char**))q_i2d_DSAPrivateKey,PEM_STRING_DSA,\
-                           bp,(char *)x,enc,kstr,klen,cb,u)
-#define q_PEM_read_bio_DHparams(bp, dh, cb, u) \
-        (DH *)q_PEM_ASN1_read_bio( \
-        (void *(*)(void**, const unsigned char**, long int))q_d2i_DHparams, PEM_STRING_DHPARAMS, bp, (void **)x, cb, u)
-#endif
 #define q_SSL_CTX_set_mode(ctx,op) q_SSL_CTX_ctrl((ctx),SSL_CTRL_MODE,(op),NULL)
 #define q_SKM_sk_num(type, st) ((int (*)(const STACK_OF(type) *))q_sk_num)(st)
 #define q_SKM_sk_value(type, st,i) ((type * (*)(const STACK_OF(type) *, int))q_sk_value)(st, i)
