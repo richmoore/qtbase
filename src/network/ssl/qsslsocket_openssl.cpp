@@ -95,9 +95,7 @@ bool QSslSocketPrivate::s_libraryLoaded = false;
 bool QSslSocketPrivate::s_loadedCiphersAndCerts = false;
 bool QSslSocketPrivate::s_loadRootCertsOnDemand = false;
 
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
 int QSslSocketBackendPrivate::s_indexForSSLExtraData = -1;
-#endif
 
 QString QSslSocketBackendPrivate::getErrorsFromOpenSsl()
 {
@@ -113,7 +111,6 @@ QString QSslSocketBackendPrivate::getErrorsFromOpenSsl()
 }
 
 extern "C" {
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L && !defined(OPENSSL_NO_PSK)
 static unsigned int q_ssl_psk_client_callback(SSL *ssl,
                                               const char *hint,
                                               char *identity, unsigned int max_identity_len,
@@ -132,7 +129,6 @@ static unsigned int q_ssl_psk_server_callback(SSL *ssl,
     Q_ASSERT(d);
     return d->tlsPskServerCallback(identity, psk, max_psk_len);
 }
-#endif
 } // extern "C"
 
 QSslSocketBackendPrivate::QSslSocketBackendPrivate()
@@ -150,7 +146,7 @@ QSslSocketBackendPrivate::~QSslSocketBackendPrivate()
     destroySslContext();
 }
 
-QSslCipher QSslSocketBackendPrivate::QSslCipher_from_SSL_CIPHER(SSL_CIPHER *cipher)
+QSslCipher QSslSocketBackendPrivate::QSslCipher_from_SSL_CIPHER(const SSL_CIPHER *cipher)
 {
     QSslCipher ciph;
 
@@ -250,7 +246,6 @@ long QSslSocketBackendPrivate::setupOpenSslOptions(QSsl::SslProtocol protocol, Q
         options = SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3;
     else if (protocol == QSsl::TlsV1_0OrLater)
         options = SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3;
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
     // Choosing Tlsv1_1OrLater or TlsV1_2OrLater on OpenSSL < 1.0.1
     // will cause an error in QSslContext::fromConfiguration, meaning
     // we will never get here.
@@ -258,7 +253,6 @@ long QSslSocketBackendPrivate::setupOpenSslOptions(QSsl::SslProtocol protocol, Q
         options = SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TLSv1;
     else if (protocol == QSsl::TlsV1_2OrLater)
         options = SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TLSv1|SSL_OP_NO_TLSv1_1;
-#endif
     else
         options = SSL_OP_ALL;
 
@@ -359,20 +353,15 @@ bool QSslSocketBackendPrivate::initSslContext()
     else
         q_SSL_set_accept_state(ssl);
 
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
     // Save a pointer to this object into the SSL structure.
-    if (q_SSLeay() >= 0x10001000L)
-        q_SSL_set_ex_data(ssl, s_indexForSSLExtraData, this);
-#endif
+    q_SSL_set_ex_data(ssl, s_indexForSSLExtraData, this);
 
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L && !defined(OPENSSL_NO_PSK)
+#if  !defined(OPENSSL_NO_PSK)
     // Set the client callback for PSK
-    if (q_SSLeay() >= 0x10001000L) {
-        if (mode == QSslSocket::SslClientMode)
-            q_SSL_set_psk_client_callback(ssl, &q_ssl_psk_client_callback);
-        else if (mode == QSslSocket::SslServerMode)
-            q_SSL_set_psk_server_callback(ssl, &q_ssl_psk_server_callback);
-    }
+    if (mode == QSslSocket::SslClientMode)
+      q_SSL_set_psk_client_callback(ssl, &q_ssl_psk_client_callback);
+    else if (mode == QSslSocket::SslServerMode)
+      q_SSL_set_psk_server_callback(ssl, &q_ssl_psk_server_callback);
 #endif
 
     return true;
@@ -423,10 +412,7 @@ bool QSslSocketPrivate::ensureLibraryLoaded()
         q_SSL_load_error_strings();
         q_OpenSSL_add_all_algorithms();
 
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
-        if (q_SSLeay() >= 0x10001000L)
-            QSslSocketBackendPrivate::s_indexForSSLExtraData = q_SSL_get_ex_new_index(0L, NULL, NULL, NULL, NULL);
-#endif
+        QSslSocketBackendPrivate::s_indexForSSLExtraData = q_SSL_get_ex_new_index(0L, NULL, NULL, NULL, NULL);
 
         // Initialize OpenSSL's random seed.
         if (!q_RAND_status()) {
@@ -1420,14 +1406,8 @@ QSslCipher QSslSocketBackendPrivate::sessionCipher() const
 {
     if (!ssl)
         return QSslCipher();
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
-    // FIXME This is fairly evil, but needed to keep source level compatibility
-    // with the OpenSSL 0.9.x implementation at maximum -- some other functions
-    // don't take a const SSL_CIPHER* when they should
-    SSL_CIPHER *sessionCipher = const_cast<SSL_CIPHER *>(q_SSL_get_current_cipher(ssl));
-#else
-    SSL_CIPHER *sessionCipher = q_SSL_get_current_cipher(ssl);
-#endif
+
+    const SSL_CIPHER *sessionCipher = q_SSL_get_current_cipher(ssl);
     return sessionCipher ? QSslCipher_from_SSL_CIPHER(sessionCipher) : QSslCipher();
 }
 
@@ -1514,7 +1494,7 @@ void QSslSocketBackendPrivate::continueHandshake()
         }
     }
 
-#if OPENSSL_VERSION_NUMBER >= 0x1000100fL && !defined(OPENSSL_NO_NEXTPROTONEG)
+#if !defined(OPENSSL_NO_NEXTPROTONEG)
 
     configuration.nextProtocolNegotiationStatus = sslContextPointer->npnContext().status;
     if (sslContextPointer->npnContext().status == QSslConfiguration::NextProtocolNegotiationUnsupported) {
@@ -1523,19 +1503,14 @@ void QSslSocketBackendPrivate::continueHandshake()
     } else {
         const unsigned char *proto = 0;
         unsigned int proto_len = 0;
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L
-        if (q_SSLeay() >= 0x10002000L) {
-            q_SSL_get0_alpn_selected(ssl, &proto, &proto_len);
-            if (proto_len && mode == QSslSocket::SslClientMode) {
-                // Client does not have a callback that sets it ...
-                configuration.nextProtocolNegotiationStatus = QSslConfiguration::NextProtocolNegotiationNegotiated;
-            }
+
+        q_SSL_get0_alpn_selected(ssl, &proto, &proto_len);
+        if (proto_len && mode == QSslSocket::SslClientMode) {
+          // Client does not have a callback that sets it ...
+          configuration.nextProtocolNegotiationStatus = QSslConfiguration::NextProtocolNegotiationNegotiated;
         }
 
         if (!proto_len) { // Test if NPN was more lucky ...
-#else
-        {
-#endif
             q_SSL_get0_next_proto_negotiated(ssl, &proto, &proto_len);
         }
 
@@ -1544,15 +1519,13 @@ void QSslSocketBackendPrivate::continueHandshake()
         else
             configuration.nextNegotiatedProtocol.clear();
     }
-#endif // OPENSSL_VERSION_NUMBER >= 0x1000100fL ...
+#endif // !defined(OPENSSL_NO_NEXTPROTONEG)
 
-#if OPENSSL_VERSION_NUMBER >= 0x10002000L
-    if (q_SSLeay() >= 0x10002000L && mode == QSslSocket::SslClientMode) {
+    if (mode == QSslSocket::SslClientMode) {
         EVP_PKEY *key;
         if (q_SSL_get_server_tmp_key(ssl, &key))
             configuration.ephemeralServerKey = QSslKey(key, QSsl::PublicKey);
     }
-#endif // OPENSSL_VERSION_NUMBER >= 0x10002000L ...
 
     connectionEncrypted = true;
     emit q->encrypted();
@@ -1634,11 +1607,8 @@ QList<QSslError> QSslSocketBackendPrivate::verify(const QList<QSslCertificate> &
                 first = false;
                 continue;
             }
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+
             q_sk_push( (_STACK *)intermediates, reinterpret_cast<X509 *>(cert.handle()));
-#else
-            q_sk_push( (STACK *)intermediates, reinterpret_cast<char *>(cert.handle()));
-#endif
         }
     }
 
@@ -1662,11 +1632,7 @@ QList<QSslError> QSslSocketBackendPrivate::verify(const QList<QSslCertificate> &
     (void) q_X509_verify_cert(storeContext);
 
     q_X509_STORE_CTX_free(storeContext);
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
     q_sk_free( (_STACK *) intermediates);
-#else
-    q_sk_free( (STACK *) intermediates);
-#endif
 
     // Now process the errors
     const auto errorList = std::move(_q_sslErrorList()->errors);
