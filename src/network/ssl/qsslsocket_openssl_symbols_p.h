@@ -377,6 +377,8 @@ void q_X509_print(BIO *a, X509*b);
 int q_X509_digest(const X509 *x509, const EVP_MD *type, unsigned char *md, unsigned int *len);
 ASN1_OBJECT *q_X509_EXTENSION_get_object(X509_EXTENSION *a);
 void q_X509_free(X509 *a);
+ASN1_TIME *q_X509_get_notBefore(X509 *a);
+ASN1_TIME *q_X509_get_notAfter(X509 *a);
 X509_EXTENSION *q_X509_get_ext(X509 *a, int b);
 int q_X509_get_ext_count(X509 *a);
 void *q_X509_get_ext_d2i(X509 *a, int b, int *c, int *d);
@@ -401,6 +403,7 @@ ASN1_OBJECT *q_X509_NAME_ENTRY_get_object(X509_NAME_ENTRY *a);
 EVP_PKEY *q_X509_PUBKEY_get(X509_PUBKEY *a);
 void q_X509_STORE_free(X509_STORE *store);
 X509_STORE *q_X509_STORE_new();
+void q_X509_STORE_set_verify_cb(X509_STORE *ctx, X509_STORE_CTX_verify_cb verify_cb);
 int q_X509_STORE_add_cert(X509_STORE *ctx, X509 *x);
 void q_X509_STORE_CTX_free(X509_STORE_CTX *storeCtx);
 int q_X509_STORE_CTX_init(X509_STORE_CTX *ctx, X509_STORE *store,
