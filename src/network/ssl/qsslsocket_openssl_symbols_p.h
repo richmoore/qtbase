@@ -319,7 +319,6 @@ int q_SSL_clear(SSL *a);
 char *q_SSL_CIPHER_description(const SSL_CIPHER *a, char *b, int c);
 int q_SSL_CIPHER_get_bits(const SSL_CIPHER *a, int *b);
 int q_SSL_connect(SSL *a);
-SSL_SESSION *q_SSL_get_session(SSL *a);
 int q_SSL_CTX_check_private_key(const SSL_CTX *a);
 long q_SSL_CTX_ctrl(SSL_CTX *a, int b, long c, void *d);
 void q_SSL_CTX_free(SSL_CTX *a);
