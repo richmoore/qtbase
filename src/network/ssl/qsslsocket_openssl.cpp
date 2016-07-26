@@ -314,7 +314,7 @@ bool QSslSocketBackendPrivate::initSslContext()
     if (configuration.protocol != QSsl::SslV2 &&
         configuration.protocol != QSsl::SslV3 &&
         configuration.protocol != QSsl::UnknownProtocol &&
-        mode == QSslSocket::SslClientMode && q_SSLeay() >= 0x00090806fL) {
+        mode == QSslSocket::SslClientMode) {
         // Set server hostname on TLS extension. RFC4366 section 3.1 requires it in ACE format.
         QString tlsHostName = verificationPeerName.isEmpty() ? q->peerName() : verificationPeerName;
         if (tlsHostName.isEmpty())
@@ -496,7 +496,7 @@ long QSslSocketPrivate::sslLibraryVersionNumber()
     if (!supportsSsl())
         return 0;
 
-    return q_SSLeay();
+    return q_OpenSSL_version_num();
 }
 
 QString QSslSocketPrivate::sslLibraryVersionString()
@@ -504,7 +504,7 @@ QString QSslSocketPrivate::sslLibraryVersionString()
     if (!supportsSsl())
         return QString();
 
-    const char *versionString = q_SSLeay_version(SSLEAY_VERSION);
+    const char *versionString = q_OpenSSL_version(OPENSSL_VERSION);
     if (!versionString)
         return QString();
 
@@ -1593,7 +1593,7 @@ QList<QSslError> QSslSocketBackendPrivate::verify(const QList<QSslCertificate> &
     // Build the chain of intermediate certificates
     STACK_OF(X509) *intermediates = 0;
     if (certificateChain.length() > 1) {
-        intermediates = (STACK_OF(X509) *) q_sk_new_null();
+        intermediates = (STACK_OF(X509) *) q_OPENSSL_sk_new_null();
 
         if (!intermediates) {
             q_X509_STORE_free(certStore);
@@ -1608,7 +1608,7 @@ QList<QSslError> QSslSocketBackendPrivate::verify(const QList<QSslCertificate> &
                 continue;
             }
 
-            q_sk_push( (_STACK *)intermediates, reinterpret_cast<X509 *>(cert.handle()));
+            q_OPENSSL_sk_push( (OPENSSL_STACK *)intermediates, reinterpret_cast<X509 *>(cert.handle()));
         }
     }
 
@@ -1632,7 +1632,7 @@ QList<QSslError> QSslSocketBackendPrivate::verify(const QList<QSslCertificate> &
     (void) q_X509_verify_cert(storeContext);
 
     q_X509_STORE_CTX_free(storeContext);
-    q_sk_free( (_STACK *) intermediates);
+    q_OPENSSL_sk_free( (OPENSSL_STACK *) intermediates);
 
     // Now process the errors
     const auto errorList = std::move(_q_sslErrorList()->errors);
@@ -1706,7 +1706,7 @@ bool QSslSocketBackendPrivate::importPkcs12(QIODevice *device,
     // Convert to Qt types
     if (!key->d->fromEVP_PKEY(pkey)) {
         qCWarning(lcSsl, "Unable to convert private key");
-        q_sk_pop_free(reinterpret_cast<STACK *>(ca), reinterpret_cast<void(*)(void*)>(q_sk_free));
+        q_OPENSSL_sk_pop_free(reinterpret_cast<OPENSSL_STACK *>(ca), reinterpret_cast<void(*)(void*)>(q_OPENSSL_sk_free));
         q_X509_free(x509);
         q_EVP_PKEY_free(pkey);
         q_PKCS12_free(p12);
@@ -1721,7 +1721,7 @@ bool QSslSocketBackendPrivate::importPkcs12(QIODevice *device,
         *caCertificates = QSslSocketBackendPrivate::STACKOFX509_to_QSslCertificates(ca);
 
     // Clean up
-    q_sk_pop_free(reinterpret_cast<STACK *>(ca), reinterpret_cast<void(*)(void*)>(q_sk_free));
+    q_OPENSSL_sk_pop_free(reinterpret_cast<OPENSSL_STACK *>(ca), reinterpret_cast<void(*)(void*)>(q_OPENSSL_sk_free));
     q_X509_free(x509);
     q_EVP_PKEY_free(pkey);
     q_PKCS12_free(p12);
