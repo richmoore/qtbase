@@ -53,6 +53,7 @@
 
 // For q_BN_is_word.
 #include <openssl/bn.h>
+#include <openssl/dh.h>
 
 QT_BEGIN_NAMESPACE
 
