@@ -1,0 +1,37 @@
+Work on backend for openssl 1.1
+===============================
+
+OPENSSL_LIBS='-L/home/rich/src/openssl -lssl -lcrypto' \
+./configure --developer-build -opensource -confirm-license -nomake examples
+-nomake tests -skip qtscxml \
+-openssl-linked -I ~/src/openssl/include
+
+-DOPENSSL_API_COMPAT=0x10100000L
+
+Openssl 1.1 To Do
+=================
+
+ * Test dlopen (done)
+
+ * Change from SSLeay_version etc. to OpenSSL_version (done)
+
+ * Build with OPENSSL_API_COMPAT set to the latest API to catch any more
+   changed APIs (done)
+
+ * Add support for legacy backend back again!
+
+ * Configure support/test for openssl 1.1
+
+ * Do we need a mutex for the library loading?
+
+ * Re-add support for limiting the set of TLS protocol versions enabled
+
+ * Ensure tests understand that SSL2 isn't there
+
+ * Consider what to do about QT_NO_OPENSSL etc.
+
+ * Length of DSA keys
+
+ * Switch to openssl certificate hostname verification (get name constraint
+   support for free).
+   
