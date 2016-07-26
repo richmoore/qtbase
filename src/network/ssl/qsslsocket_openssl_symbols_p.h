@@ -307,12 +307,12 @@ int q_RAND_status();
 RSA *q_RSA_new();
 void q_RSA_free(RSA *a);
 int q_RSA_bits(RSA *a);
-int q_sk_num(STACK *a);
-void q_sk_pop_free(STACK *a, void (*b)(void *));
-_STACK *q_sk_new_null();
-void q_sk_push(_STACK *st, void *data);
-void q_sk_free(_STACK *a);
-void * q_sk_value(STACK *a, int b);
+int q_OPENSSL_sk_num(OPENSSL_STACK *a);
+void q_OPENSSL_sk_pop_free(OPENSSL_STACK *a, void (*b)(void *));
+OPENSSL_STACK *q_OPENSSL_sk_new_null();
+void q_OPENSSL_sk_push(OPENSSL_STACK *st, void *data);
+void q_OPENSSL_sk_free(OPENSSL_STACK *a);
+void * q_OPENSSL_sk_value(OPENSSL_STACK *a, int b);
 int q_SSL_accept(SSL *a);
 int q_SSL_session_reused(SSL *a);
 int q_SSL_clear(SSL *a);
@@ -449,8 +449,8 @@ void q_PKCS12_free(PKCS12 *pkcs12);
 #define q_BIO_get_mem_data(b, pp) (int)q_BIO_ctrl(b,BIO_CTRL_INFO,0,(char *)pp)
 #define q_BIO_pending(b) (int)q_BIO_ctrl(b,BIO_CTRL_PENDING,0,NULL)
 #define q_SSL_CTX_set_mode(ctx,op) q_SSL_CTX_ctrl((ctx),SSL_CTRL_MODE,(op),NULL)
-#define q_SKM_sk_num(type, st) ((int (*)(const STACK_OF(type) *))q_sk_num)(st)
-#define q_SKM_sk_value(type, st,i) ((type * (*)(const STACK_OF(type) *, int))q_sk_value)(st, i)
+#define q_SKM_sk_num(type, st) ((int (*)(const STACK_OF(type) *))q_OPENSSL_sk_num)(st)
+#define q_SKM_sk_value(type, st,i) ((type * (*)(const STACK_OF(type) *, int))q_OPENSSL_sk_value)(st, i)
 #define q_sk_GENERAL_NAME_num(st) q_SKM_sk_num(GENERAL_NAME, (st))
 #define q_sk_GENERAL_NAME_value(st, i) q_SKM_sk_value(GENERAL_NAME, (st), (i))
 #define q_sk_X509_num(st) q_SKM_sk_num(X509, (st))

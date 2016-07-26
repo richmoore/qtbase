@@ -98,10 +98,6 @@
 #include <openssl/crypto.h>
 #include <openssl/tls1.h>
 
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
-typedef _STACK STACK;
-#endif
-
 QT_BEGIN_NAMESPACE
 
 struct QSslErrorEntry {
@@ -127,9 +123,7 @@ public:
     BIO *writeBio;
     SSL_SESSION *session;
     QVector<QSslErrorEntry> errorList;
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
     static int s_indexForSSLExtraData; // index used in SSL_get_ex_data to get the matching QSslSocketBackendPrivate
-#endif
 
     // Platform specific functions
     void startClientEncryption() Q_DECL_OVERRIDE;
