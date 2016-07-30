@@ -381,7 +381,6 @@ void QSslSocketBackendPrivate::destroySslContext()
 */
 void QSslSocketPrivate::deinitialize()
 {
-    q_ERR_free_strings();
 }
 
 /*!
@@ -407,12 +406,12 @@ bool QSslSocketPrivate::ensureLibraryLoaded()
         s_libraryLoaded = true;
 
         // Initialize OpenSSL.
-        if (q_SSL_library_init() != 1)
+        if (q_OPENSSL_init_ssl(0, NULL) != 1)
             return false;
         q_SSL_load_error_strings();
         q_OpenSSL_add_all_algorithms();
 
-        QSslSocketBackendPrivate::s_indexForSSLExtraData = q_SSL_get_ex_new_index(0L, NULL, NULL, NULL, NULL);
+        QSslSocketBackendPrivate::s_indexForSSLExtraData = q_CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_SSL, 0L, NULL, NULL, NULL, NULL);
 
         // Initialize OpenSSL's random seed.
         if (!q_RAND_status()) {

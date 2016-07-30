@@ -241,11 +241,9 @@ int q_DSA_bits(DSA *a);
 X509 *q_d2i_X509(X509 **a, const unsigned char **b, long c);
 char *q_ERR_error_string(unsigned long a, char *b);
 unsigned long q_ERR_get_error();
-void q_ERR_free_strings();
 EVP_CIPHER_CTX *q_EVP_CIPHER_CTX_new();
 void q_EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *a);
-void q_EVP_CIPHER_CTX_cleanup(EVP_CIPHER_CTX *a);
-void q_EVP_CIPHER_CTX_init(EVP_CIPHER_CTX *a);
+int q_EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX *c);
 int q_EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr);
 int q_EVP_CIPHER_CTX_set_key_length(EVP_CIPHER_CTX *x, int keylen);
 int q_EVP_CipherInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type, const unsigned char *key, const unsigned char *iv, int enc);
@@ -342,8 +340,7 @@ int q_SSL_get_error(SSL *a, int b);
 STACK_OF(X509) *q_SSL_get_peer_cert_chain(SSL *a);
 X509 *q_SSL_get_peer_certificate(SSL *a);
 long q_SSL_get_verify_result(const SSL *a);
-int q_SSL_library_init();
-void q_SSL_load_error_strings();
+int q_OPENSSL_init_ssl(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
 SSL *q_SSL_new(SSL_CTX *a);
 long q_SSL_ctrl(SSL *ssl,int cmd, long larg, void *parg);
 int q_SSL_read(SSL *a, void *b, int c);
@@ -357,7 +354,7 @@ void q_SSL_SESSION_free(SSL_SESSION *ses);
 size_t q_SSL_SESSION_get_master_key(const SSL_SESSION *session, unsigned char *out, size_t outlen);
 SSL_SESSION *q_SSL_get1_session(SSL *ssl);
 SSL_SESSION *q_SSL_get_session(const SSL *ssl);
-int q_SSL_get_ex_new_index(long argl, void *argp, CRYPTO_EX_new *new_func, CRYPTO_EX_dup *dup_func, CRYPTO_EX_free *free_func);
+int q_CRYPTO_get_ex_new_index(int class_index, long argl, void *argp, CRYPTO_EX_new *new_func, CRYPTO_EX_dup *dup_func, CRYPTO_EX_free *free_func);
 int q_SSL_set_ex_data(SSL *ssl, int idx, void *arg);
 void *q_SSL_get_ex_data(const SSL *ssl, int idx);
 #if !defined(OPENSSL_NO_PSK)
@@ -413,14 +410,14 @@ int q_X509_STORE_CTX_set_purpose(X509_STORE_CTX *ctx, int purpose);
 int q_X509_STORE_CTX_get_error(X509_STORE_CTX *ctx);
 int q_X509_STORE_CTX_get_error_depth(X509_STORE_CTX *ctx);
 X509 *q_X509_STORE_CTX_get_current_cert(X509_STORE_CTX *ctx);
-STACK_OF(X509) *q_X509_STORE_CTX_get_chain(X509_STORE_CTX *ctx);
+STACK_OF(X509) *q_X509_STORE_CTX_get0_chain(X509_STORE_CTX *ctx);
 
 // Diffie-Hellman support
 DH *q_DH_new();
 void q_DH_free(DH *dh);
 DH *q_d2i_DHparams(DH **a, const unsigned char **pp, long length);
 int q_i2d_DHparams(DH *a, unsigned char **p);
-void q_DH_get0_pqg(DH *dh, const BIGNUM **p, const BIGNUM **q, const BIGNUM **g);
+void q_DH_get0_pqg(const DH *dh, const BIGNUM **p, const BIGNUM **q, const BIGNUM **g);
 int q_DH_bits(DH *dh);
 int q_DH_check(DH *dh, int *codes);
 
@@ -445,7 +442,8 @@ int q_PKCS12_parse(PKCS12 *p12, const char *pass, EVP_PKEY **pkey, X509 **cert, 
 PKCS12 *q_d2i_PKCS12_bio(BIO *bio, PKCS12 **pkcs12);
 void q_PKCS12_free(PKCS12 *pkcs12);
 
-
+# define q_SSL_load_error_strings() q_OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS \
+                                                       | OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL)
 #define q_BIO_get_mem_data(b, pp) (int)q_BIO_ctrl(b,BIO_CTRL_INFO,0,(char *)pp)
 #define q_BIO_pending(b) (int)q_BIO_ctrl(b,BIO_CTRL_PENDING,0,NULL)
 #define q_SSL_CTX_set_mode(ctx,op) q_SSL_CTX_ctrl((ctx),SSL_CTRL_MODE,(op),NULL)
@@ -459,16 +457,19 @@ void q_PKCS12_free(PKCS12 *pkcs12);
 #define q_sk_SSL_CIPHER_value(st, i) q_SKM_sk_value(SSL_CIPHER, (st), (i))
 #define q_SSL_CTX_add_extra_chain_cert(ctx,x509) \
         q_SSL_CTX_ctrl(ctx,SSL_CTRL_EXTRA_CHAIN_CERT,0,(char *)x509)
-#define q_X509_get_notAfter(x) X509_get_notAfter(x)
-#define q_X509_get_notBefore(x) X509_get_notBefore(x)
 #define q_EVP_PKEY_assign_RSA(pkey,rsa) q_EVP_PKEY_assign((pkey),EVP_PKEY_RSA,\
                                         (char *)(rsa))
 #define q_EVP_PKEY_assign_DSA(pkey,dsa) q_EVP_PKEY_assign((pkey),EVP_PKEY_DSA,\
                                         (char *)(dsa))
 #define q_OpenSSL_add_all_algorithms() q_OPENSSL_add_all_algorithms_conf()
-void q_OPENSSL_add_all_algorithms_noconf();
-void q_OPENSSL_add_all_algorithms_conf();
-void q_OPENSSL_free(void *addr);
+#define q_OPENSSL_add_all_algorithms_conf()  q_OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS \
+                                                                   | OPENSSL_INIT_ADD_ALL_DIGESTS \
+                                                                   | OPENSSL_INIT_LOAD_CONFIG, NULL)
+#define  q_OPENSSL_add_all_algorithms_noconf() q_OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS \
+                                                                    | OPENSSL_INIT_ADD_ALL_DIGESTS, NULL)
+
+int q_OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
+void q_CRYPTO_free(void *str, const char *file, int line);
 int q_SSL_CTX_load_verify_locations(SSL_CTX *ctx, const char *CAfile, const char *CApath);
 long q_OpenSSL_version_num();
 const char *q_OpenSSL_version(int type);

@@ -291,7 +291,7 @@ static QByteArray doCrypt(QSslKeyPrivate::Cipher cipher, const QByteArray &data,
 
     QByteArray output;
     output.resize(data.size() + EVP_MAX_BLOCK_LENGTH);
-    q_EVP_CIPHER_CTX_init(ctx);
+    q_EVP_CIPHER_CTX_reset(ctx);
     q_EVP_CipherInit(ctx, type, NULL, NULL, enc);
     q_EVP_CIPHER_CTX_set_key_length(ctx, key.size());
     if (cipher == QSslKeyPrivate::Rc2Cbc)
@@ -305,7 +305,7 @@ static QByteArray doCrypt(QSslKeyPrivate::Cipher cipher, const QByteArray &data,
     q_EVP_CipherFinal(ctx,
         reinterpret_cast<unsigned char *>(output.data()) + len, &i);
     len += i;
-    q_EVP_CIPHER_CTX_cleanup(ctx);
+    q_EVP_CIPHER_CTX_reset(ctx);
     q_EVP_CIPHER_CTX_free(ctx);
 
     return output.left(len);

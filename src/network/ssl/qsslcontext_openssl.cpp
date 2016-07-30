@@ -110,7 +110,7 @@ init_context:
         // by re-initializing the library.
         if (!reinitialized) {
             reinitialized = true;
-            if (q_SSL_library_init() == 1)
+            if (q_OPENSSL_init_ssl(0, 0) == 1)
                 goto init_context;
         }
 
@@ -400,10 +400,9 @@ SSL* QSslContext::createSsl()
         q_SSL_CTX_set_alpn_select_cb(ctx, alpn_callback_t(next_proto_cb), &m_npnContext);
         // Client:
         q_SSL_set_alpn_protos(ssl, m_npnContext.data, m_npnContext.len);
+        // And in case our peer does not support ALPN, but supports NPN:
+        q_SSL_CTX_set_next_proto_select_cb(ctx, next_proto_cb, &m_npnContext);
     }
-
-    // And in case our peer does not support ALPN, but supports NPN:
-    q_SSL_CTX_set_next_proto_select_cb(ctx, next_proto_cb, &m_npnContext);
 #endif // !defined(OPENSSL_NO_NEXTPROTONEG)
 
     return ssl;
